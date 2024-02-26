@@ -123,3 +123,25 @@ STATIC_ROOT = BASE_DIR / 'static'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
+
+from celery.schedules import crontab
+from datetime import datetime
+
+CELERY_BEAT_SCHEDULE = { # scheduler configuration 
+    'Task_one_schedule' : {  # whatever the name you want 
+        'task': 'mysite.tasks.task_one', # name of task with path
+        'schedule': crontab(), # crontab() runs the tasks every minute
+    },
+    'Task_two_schedule' : {  # whatever the name you want 
+        'task': 'mysite.tasks.task_two', # name of task with path
+        'schedule': 30, # 30 runs this task every 30 seconds
+        'args' : {datetime.now()} # arguments for the task
+    },
+}
