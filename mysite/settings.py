@@ -130,6 +130,7 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
+CELERY_TIMEZONE = 'Europe/Warsaw'
 
 from celery.schedules import crontab
 from datetime import datetime
