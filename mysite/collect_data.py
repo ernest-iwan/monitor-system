@@ -12,6 +12,7 @@ def collect_data(url):
    data = {}
    try:
       with requests.get(url, stream=True) as response:
+         data['request_datetime'] = datetime.now(time_zone)
          data['domain'] = url[8:]
          w = whois.whois(data['domain'])
 
