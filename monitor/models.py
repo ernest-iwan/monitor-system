@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 
-class Logs(models.Model):
+class Log(models.Model):
     request_date = models.DateTimeField(default=timezone.now)
     domain = models.TextField()
     ping = models.IntegerField()
