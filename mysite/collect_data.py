@@ -3,6 +3,7 @@ import ssl
 import whois
 from datetime import datetime, timezone
 import tzlocal
+from ping3 import ping, verbose_ping
 
 now = datetime.now()
 format_str = "%Y-%m-%d %H:%M:%S"
@@ -12,8 +13,10 @@ def collect_data(url):
    data = {}
    try:
       with requests.get(url, stream=True) as response:
-         data['request_datetime'] = datetime.now(time_zone)
+         data['request_datetime'] = datetime.now(time_zone).strftime(format_str)
          data['domain'] = url[8:]
+         data['ping'] = round(ping(data['domain'], unit='ms'))
+         data['respones_time'] = round(response.elapsed.total_seconds() * 1000)
          w = whois.whois(data['domain'])
 
          certificate_info_raw = response.raw.connection.sock.getpeercert(True)
