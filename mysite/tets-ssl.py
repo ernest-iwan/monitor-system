@@ -9,7 +9,7 @@ format_str = "%Y-%m-%d %H:%M:%S"
 time_zone = tzlocal.get_localzone()
 
 def collect_data(url):
-   data = {};
+   data = {}
    try:
       with requests.get(url, stream=True) as response:
          data['domain'] = url[8:]
