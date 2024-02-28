@@ -8,7 +8,7 @@ django.setup()
 from celery import Celery
 from django.conf import settings
 from celery.schedules import crontab
-from monitor.models import Log
+from monitor.models import Log, Monitor
 import requests
 import ssl
 import whois
@@ -30,6 +30,15 @@ app.autodiscover_tasks()
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(10.0, collect_data.s("https://google.com"), name='check domain google every 10 sec')
+    sender.add_periodic_task(10.0, get_monitors.s(), name='get monitors')
+
+
+   #  TODO
+   #  Find method to setup perodic tasks for all monitors
+   #  1. Setup all on run (check if exist by monitor id)
+   #  2. Start periodic task on monitor add
+   #  3. 1+2 option
+   #  4.Other options
 
     # # Calls test('hello') every 30 seconds.
     # # It uses the same signature of previous task, an explicit name is
@@ -53,6 +62,10 @@ def setup_periodic_tasks(sender, **kwargs):
 # def add(x, y):
 #     z = x + y
 #     print(z)
+@app.task
+def get_monitors():
+   for x in Monitor.objects.filter(is_active=True):
+      print(x)
 
 @app.task
 def collect_data(url):

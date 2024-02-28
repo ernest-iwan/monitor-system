@@ -40,8 +40,7 @@ class Monitor(models.Model):
     status = models.CharField(_("Status"), max_length=15, choices=STATUSES, default=STATUS_ONLINE)
     is_active = models.BooleanField(_("Czy aktywny?"))
     emails = models.ManyToManyField(Email, verbose_name=_("Emaile"))
-    url = models.CharField(_("URL"), max_length=100, null=True)
-    domain_or_ip = models.CharField(_("Domena lub IP"), max_length=100, null=True)
+    value_to_check = models.CharField(_("URL lub IP lub domena"), max_length=100, null=True)
 
 
     class Meta:

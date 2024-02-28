@@ -4,7 +4,6 @@ import whois
 from datetime import datetime, timezone
 import tzlocal
 from ping3 import ping, verbose_ping
-
 now = datetime.now()
 format_str = "%Y-%m-%d %H:%M:%S"
 time_zone = tzlocal.get_localzone()
@@ -55,4 +54,5 @@ def collect_data(url):
       
    except Exception as e:
       print(e)
+
 print(collect_data("https://google.com"))

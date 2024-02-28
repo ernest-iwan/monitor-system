@@ -12,7 +12,7 @@ class MonitorAdmin(admin.ModelAdmin):
     list_display = ("name", "monitor_type", "add_date", "status", "is_active")
     list_filter = ("monitor_type", "add_date", "is_active")
     search_fields = ("name",)
-    fieldsets = [('Dane', {'fields': ['name', 'monitor_type', 'request_timeout', 'interval', 'status', 'is_active']}),]
+    fieldsets = [('Dane', {'fields': ['name', 'monitor_type', 'request_timeout', 'interval', 'status', 'is_active', 'value_to_check']}),]
     # TODO url or ip or domain
     inlines = [EmailValuesInline]
 
