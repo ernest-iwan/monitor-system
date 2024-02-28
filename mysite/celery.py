@@ -58,7 +58,7 @@ def setup_periodic_tasks(sender, **kwargs):
 def collect_data(url):
    data = {}
    try:
-      with requests.get(url, stream=True) as response:
+      with requests.get(url, stream=True, timeout=5) as response:
          data['request_datetime'] = datetime.now(time_zone).strftime(format_str)
          data['domain'] = url[8:]
          data['ping'] = round(ping(data['domain'], unit='ms'))
