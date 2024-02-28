@@ -14,6 +14,12 @@ class LogAdmin(admin.ModelAdmin):
     list_filter = ("request_date", "domain")
     search_fields = ("domain", "status")
 
+@admin.register(Email)
+class EmailAdmin(admin.ModelAdmin):
+    list_display = ("email", "monitor_id")
+    list_filter = ("email", "monitor_id")
+    search_fields = ("email",)
+
 # @admin.register(StatusPage)
 # class StatusPageAdmin(admin.ModelAdmin):
 #     list_display = ("request_date", "domain", "ping", "response_time", "status")
