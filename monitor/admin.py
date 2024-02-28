@@ -29,16 +29,6 @@ class EmailAdmin(admin.ModelAdmin):
     list_display = ("email",)
     list_filter = ("email",)
     search_fields = ("email",)
-    
-# class PersonAdmin(admin.ModelAdmin):
-#     list_display = ('lastName', 'firstName','email')
-#     fieldsets = [
-#        ('Name',        {'fields': ['firstName', 'lastName']}),
-#        ('Contact Info',{'fields': ['email','phoneNumber']})
-#     ]
-#     inlines = [EmailInline]
-# admin.site.register(Person, PersonAdmin)
-# admin.site.register(Attribute)
 
 # @admin.register(StatusPage)
 # class StatusPageAdmin(admin.ModelAdmin):

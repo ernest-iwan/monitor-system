@@ -3,8 +3,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-
-
 class Email(models.Model):
     email = models.CharField(_("Email"), max_length=100)
 
