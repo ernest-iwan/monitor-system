@@ -9,8 +9,6 @@ from celery import Celery
 from django.conf import settings
 from celery.schedules import crontab
 from monitor.models import Log
-
-
 import requests
 import ssl
 import whois
@@ -21,9 +19,6 @@ from ping3 import ping
 now = datetime.now()
 format_str = "%Y-%m-%d %H:%M:%S %z"
 time_zone = tzlocal.get_localzone()
-
-
-
 
 app = Celery('mysite')
 app.conf.enable_utc = False
@@ -36,28 +31,28 @@ app.autodiscover_tasks()
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(10.0, collect_data.s("https://google.com"), name='check domain google every 10 sec')
 
-    # Calls test('hello') every 30 seconds.
-    # It uses the same signature of previous task, an explicit name is
-    # defined to avoid this task replacing the previous one defined.
-    sender.add_periodic_task(30.0, test.s('hello'), name='add every 30')
+    # # Calls test('hello') every 30 seconds.
+    # # It uses the same signature of previous task, an explicit name is
+    # # defined to avoid this task replacing the previous one defined.
+    # sender.add_periodic_task(30.0, test.s('hello'), name='add every 30')
 
-    # Calls test('world') every 30 seconds
-    sender.add_periodic_task(30.0, test.s('world'), expires=10)
+    # # Calls test('world') every 30 seconds
+    # sender.add_periodic_task(30.0, test.s('world'), expires=10)
 
-    # Executes every Monday morning at 7:30 a.m.
-    sender.add_periodic_task(
-        crontab(hour=7, minute=30, day_of_week=1),
-        test.s('Happy Mondays!'),
-    )
+    # # Executes every Monday morning at 7:30 a.m.
+    # sender.add_periodic_task(
+    #     crontab(hour=7, minute=30, day_of_week=1),
+    #     test.s('Happy Mondays!'),
+    # )
 
-@app.task
-def test(arg):
-    print("test")
+# @app.task
+# def test(arg):
+#     print("test")
 
-@app.task
-def add(x, y):
-    z = x + y
-    print(z)
+# @app.task
+# def add(x, y):
+#     z = x + y
+#     print(z)
 
 @app.task
 def collect_data(url):
@@ -107,3 +102,5 @@ def collect_data(url):
 
    except Exception as e:
       print(e)
+
+# celery -A mysite worker --beat --scheduler django

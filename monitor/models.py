@@ -28,7 +28,7 @@ class Log(models.Model):
 
 
     def __str__(self):
-        return self.request_date
+        return str(self.request_date)
 
 class StatusPage(models.Model):
     name = models.CharField(max_length=100)
