@@ -147,7 +147,7 @@ CELERY_TIMEZONE = TIME_ZONE
 
 # CELERY BEAT SCHEDULER
 
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 # REDIS CACHE
 
