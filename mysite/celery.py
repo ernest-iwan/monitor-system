@@ -105,16 +105,49 @@ def collect_data_url(url, timeout, monitor_id):
       l = Log(monitor_id=monitor, status_code=data['status_code'], status=data['status'])
    l.save()
 
+
+
+
 @app.task
 def collect_data_ping(url, timeout, monitor_id):
    data = {}
    monitor = Monitor.objects.get(id=monitor_id)
    try:
+      conn = urllib.request.urlopen(url)
+      data['status_code']=  conn.getcode()
+   except HTTPError as e:
+      data['status_code']=  e.code
+   except:
+      data['status_code']= 404
+      
+   try:
       data['domain'] = url[8:]
       data['ping'] = round(ping(data['domain'], unit='ms'))
+      if(monitor.status == "offline"):
+            for tmp in EmailValues.objects.filter(monitor_id=monitor_id):
+               send_mail(
+                  "Twoja monitorowana strona przeszła w status online",
+                  "Strona powróciła do poprawnego działania",
+                  settings.EMAIL_HOST_USER,
+                  [tmp.email],
+                  fail_silently=False,
+               )
+            monitor.status = "online"
+            monitor.save() 
    except Exception as e:
+      if(monitor.status == "online"):
+         for tmp in EmailValues.objects.filter(monitor_id=monitor_id):
+            send_mail(
+               "Twoja monitorowana strona przeszła w status offline",
+               "Sprawdź czy wszystko działa poprawnie",
+               settings.EMAIL_HOST_USER,
+               [tmp.email],
+               fail_silently=False,
+            )
+         monitor.status = "offline"
+         monitor.save()
       print(e)
-   l = Log(monitor_id=monitor, ping=data['ping'],)
+   l = Log(monitor_id=monitor, ping=data['ping'], status_code=data['status_code'])
    l.save()
 
 # celery -A mysite worker --beat --scheduler django
