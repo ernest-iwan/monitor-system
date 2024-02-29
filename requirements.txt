@@ -15,6 +15,7 @@ django-celery-beat==2.5.0
 django-celery-results==2.5.1
 django-cron==0.6.0
 django-crontab==0.7.1
+django-nested-inline==0.4.6
 django-redis==5.4.0
 django-timezone-field==6.1.0
 future==1.0.0

@@ -6,15 +6,19 @@ import django
 django.setup()
 
 from celery import Celery
+from django_celery_beat.models import PeriodicTask
 from django.conf import settings
 from celery.schedules import crontab
-from monitor.models import Log, Monitor
+from monitor.models import Log, Monitor, EmailValues
 import requests
 import ssl
 import whois
+from urllib.error import HTTPError
+import urllib.request
 from datetime import datetime, timezone
 import tzlocal
 from ping3 import ping
+from django.core.mail import send_mail
 
 now = datetime.now()
 format_str = "%Y-%m-%d %H:%M:%S %z"
@@ -27,76 +31,16 @@ app.config_from_object(settings, namespace='CELERY')
 
 app.autodiscover_tasks()
 
-@app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(10.0, collect_data.s("https://google.com"), name='check domain google every 10 sec')
-    sender.add_periodic_task(10.0, get_monitors.s(), name='get monitors')
-
-
-   #  TODO
-   #  Find method to setup perodic tasks for all monitors
-   #  1. Setup all on run (check if exist by monitor id)
-   #  2. Start periodic task on monitor add
-   #  3. 1+2 option
-   #  4.Other options
-
-    # # Calls test('hello') every 30 seconds.
-    # # It uses the same signature of previous task, an explicit name is
-    # # defined to avoid this task replacing the previous one defined.
-    # sender.add_periodic_task(30.0, test.s('hello'), name='add every 30')
-
-    # # Calls test('world') every 30 seconds
-    # sender.add_periodic_task(30.0, test.s('world'), expires=10)
-
-    # # Executes every Monday morning at 7:30 a.m.
-    # sender.add_periodic_task(
-    #     crontab(hour=7, minute=30, day_of_week=1),
-    #     test.s('Happy Mondays!'),
-    # )
-
-# @app.task
-# def test(arg):
-#     print("test")
-
-# @app.task
-# def add(x, y):
-#     z = x + y
-#     print(z)
 @app.task
-def get_monitors():
-   for x in Monitor.objects.filter(is_active=True):
-      print(x)
-
-@app.task
-def collect_data(url):
+def collect_data_url(url, timeout, monitor_id):
    data = {}
+   monitor = Monitor.objects.get(id=monitor_id)
    try:
-      with requests.get(url, stream=True, timeout=5) as response:
-         data['request_datetime'] = datetime.now(time_zone).strftime(format_str)
+      with requests.get(url, stream=True, timeout=timeout) as response:
          data['domain'] = url[8:]
          data['ping'] = round(ping(data['domain'], unit='ms'))
          data['respones_time'] = round(response.elapsed.total_seconds() * 1000)
-         w = whois.whois(data['domain'])
-
-         certificate_info_raw = response.raw.connection.sock.getpeercert(True)
-         certificate_info = response.raw.connection.sock.getpeercert()
-
-         data['cert'] = ssl.DER_cert_to_PEM_cert(certificate_info_raw)
          data['status_code'] = response.status_code
-
-         tmp =  datetime.strptime((certificate_info["notBefore"])[0:-4], '%b %d %H:%M:%S %Y')
-         data['cert_from'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-
-         tmp =  datetime.strptime((certificate_info["notAfter"])[0:-4], '%b %d %H:%M:%S %Y')
-         data['cert_to'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-
-         if type(w.expiration_date) == list:
-            w.expiration_date = w.expiration_date[0]
-
-         data['domain_exp'] = w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-
-         timedelta = w.expiration_date - now
-         data['days_to_domain_exp'] = timedelta.days
 
          match data['status_code']:
             case code if code >=100 and code <= 199:
@@ -108,12 +52,83 @@ def collect_data(url):
             case code if code >=400 and code <= 499:
                data['status'] = "Client error responses"
             case code if code >=500 and code <= 599:
-               data['status'] = "Server error responses "
+               data['status'] = "Server error responses " 
 
-      l = Log(domain=data['domain'], ping=data['ping'], response_time=data['respones_time'], cert=data['cert'], status_code=data['status_code'], status=data['status'], cert_from=data['cert_from'], cert_to=data['cert_to'], domain_exp=data['domain_exp'], days_to_domain_exp=data['days_to_domain_exp'])
-      l.save()
+         if(monitor.status == "offline"):
+            for tmp in EmailValues.objects.filter(monitor_id=monitor_id):
+               send_mail(
+                  "Twoja monitorowana strona przeszła w status online",
+                  "Strona powróciła do poprawnego działania",
+                  settings.EMAIL_HOST_USER,
+                  [tmp.email],
+                  fail_silently=False,
+               )
+            monitor.status = "online"
+            monitor.save() 
+   except requests.exceptions.Timeout as e:
+      data['status_code'] = 408
+      data['status'] = "Conection timeout"
+      if(monitor.status == "online"):
+         for tmp in EmailValues.objects.filter(monitor_id=monitor_id):
+            send_mail(
+               "Twoja monitorowana strona przeszła w status offline",
+               "Sprawdź czy wszystko działa poprawnie",
+               settings.EMAIL_HOST_USER,
+               [tmp.email],
+               fail_silently=False,
+            )
+         monitor.status = "offline"
+         monitor.save()
+   except Exception as e:
+      data['status'] = "Error"
+      try:
+        conn = urllib.request.urlopen(url)
+        data['status_code']=  conn.getcode()
+      except HTTPError as e:
+        data['status_code']=  e.code
+      except:
+         data['status_code']= 404
+      if(monitor.status == "online"):
+         for tmp in EmailValues.objects.filter(monitor_id=monitor_id):
+            send_mail(
+               "Twoja monitorowana strona przeszła w status offline",
+               "Sprawdź czy wszystko działa poprawnie",
+               settings.EMAIL_HOST_USER,
+               [tmp.email],
+               fail_silently=False,
+            )
+         monitor.status = "offline"
+         monitor.save()
+   if("ping" in data):
+      l = Log(monitor_id=monitor, ping=data['ping'], response_time=data['respones_time'], status_code=data['status_code'], status=data['status'])
+   else:
+      l = Log(monitor_id=monitor, status_code=data['status_code'], status=data['status'])
+   l.save()
 
+@app.task
+def collect_data_ping(url, timeout, monitor_id):
+   data = {}
+   monitor = Monitor.objects.get(id=monitor_id)
+   try:
+      data['domain'] = url[8:]
+      data['ping'] = round(ping(data['domain'], unit='ms'))
    except Exception as e:
       print(e)
+   l = Log(monitor_id=monitor, ping=data['ping'],)
+   l.save()
 
 # celery -A mysite worker --beat --scheduler django
+   
+         #    tmp =  datetime.strptime((certificate_info["notBefore"])[0:-4], '%b %d %H:%M:%S %Y')
+         # data['cert_from'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
+
+         # tmp =  datetime.strptime((certificate_info["notAfter"])[0:-4], '%b %d %H:%M:%S %Y')
+         # data['cert_to'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
+
+         # if type(w.expiration_date) == list:
+         #    w.expiration_date = w.expiration_date[0]
+
+         # data['domain_exp'] = w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
+
+         # timedelta = w.expiration_date - now
+         # data['days_to_domain_exp'] = timedelta.days
