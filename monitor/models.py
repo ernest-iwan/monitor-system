@@ -51,6 +51,7 @@ class Monitor(models.Model):
     is_active = models.BooleanField(_("Czy aktywny?"))
     emails = models.ManyToManyField(Email, verbose_name=_("Emaile"))
     value_to_check = models.CharField(_("URL lub IP"), max_length=100, null=True)
+    ssl_monitor = models.BooleanField(_("Monitorować SSL?"), default=False)
 
 
     class Meta:

@@ -42,6 +42,7 @@ def collect_data_url(url, timeout, monitor_id):
          data['respones_time'] = round(response.elapsed.total_seconds() * 1000)
          data['status_code'] = response.status_code
 
+
          match data['status_code']:
             case code if code >=100 and code <= 199:
                data['status'] = "Informational responses"
@@ -150,18 +151,30 @@ def collect_data_ping(url, timeout, monitor_id):
    l = Log(monitor_id=monitor, ping=data['ping'], status_code=data['status_code'])
    l.save()
 
+# TODO
+@app.task
+def ssl_monitor(url, timeout):
+   data = {}
+   try:
+      with requests.get(url, stream=True, timeout=timeout) as response:
+         w = whois.whois(data['domain'])
+         certificate_info = response.raw.connection.sock.getpeercert()
+         tmp =  datetime.strptime((certificate_info["notBefore"])[0:-4], '%b %d %H:%M:%S %Y')
+         data['cert_from'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
+
+         tmp =  datetime.strptime((certificate_info["notAfter"])[0:-4], '%b %d %H:%M:%S %Y')
+         data['cert_to'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
+
+         if type(w.expiration_date) == list:
+            w.expiration_date = w.expiration_date[0]
+
+         data['domain_exp'] = w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
+
+         timedelta = w.expiration_date - now
+         data['days_to_domain_exp'] = timedelta.days
+   except:
+      pass
+
 # celery -A mysite worker --beat --scheduler django
    
-         #    tmp =  datetime.strptime((certificate_info["notBefore"])[0:-4], '%b %d %H:%M:%S %Y')
-         # data['cert_from'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-
-         # tmp =  datetime.strptime((certificate_info["notAfter"])[0:-4], '%b %d %H:%M:%S %Y')
-         # data['cert_to'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-
-         # if type(w.expiration_date) == list:
-         #    w.expiration_date = w.expiration_date[0]
-
-         # data['domain_exp'] = w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-
-         # timedelta = w.expiration_date - now
-         # data['days_to_domain_exp'] = timedelta.days
+           
