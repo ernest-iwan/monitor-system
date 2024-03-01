@@ -111,6 +111,7 @@ def notification_handler(sender, instance, **kwargs):
 def notification_handler(sender, instance, created, **kwargs):
     if created:
         interval, created = IntervalSchedule.objects.get_or_create(every=instance.interval, period=IntervalSchedule.SECONDS,)
+
         if instance.monitor_type == "http request":
             task = PeriodicTask.objects.get_or_create(
                 interval=interval, 
@@ -119,6 +120,7 @@ def notification_handler(sender, instance, created, **kwargs):
                 enabled = instance.is_active,
                 args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
+
             if instance.ssl_monitor:
                 interval, created = IntervalSchedule.objects.get_or_create(every=1, period=IntervalSchedule.DAYS,)
                 task = PeriodicTask.objects.get_or_create(
@@ -128,6 +130,7 @@ def notification_handler(sender, instance, created, **kwargs):
                 enabled = instance.is_active,
                 args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id, instance.days_before_exp]),
                 )
+
         elif instance.monitor_type == "ping":
             task = PeriodicTask.objects.get_or_create(
                 interval=interval, 
@@ -136,12 +139,14 @@ def notification_handler(sender, instance, created, **kwargs):
                 enabled = instance.is_active,
                 args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
+
     if not created:
         task = PeriodicTask.objects.get(
             name=f'monitor {instance.id}', 
         )
         task.args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id])
         task.enabled = instance.is_active
+
         if instance.monitor_type == "http request":
             task.task='mysite.celery.collect_data_url'
             task2 = PeriodicTask.objects.get(
@@ -152,4 +157,5 @@ def notification_handler(sender, instance, created, **kwargs):
             task2.save()
         elif instance.monitor_type == "ping":
             task.task='mysite.celery.collect_data_ping'
+            
         task.save()

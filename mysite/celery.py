@@ -1,17 +1,12 @@
 from __future__ import absolute_import, unicode_literals
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
-
 import django
 django.setup()
-
 from celery import Celery
-from django_celery_beat.models import PeriodicTask
 from django.conf import settings
-from celery.schedules import crontab
 from monitor.models import Log, Monitor, EmailValues
 import requests
-import ssl
 import whois
 from urllib.error import HTTPError
 import urllib.request
@@ -20,9 +15,12 @@ import tzlocal
 from ping3 import ping
 from django.core.mail import send_mail
 
+
+
 time_zone = tzlocal.get_localzone()
 now = datetime.now(time_zone)
 format_str = "%Y-%m-%d %H:%M:%S %z"
+
 
 app = Celery('mysite')
 app.conf.enable_utc = False
@@ -35,6 +33,7 @@ app.autodiscover_tasks()
 def collect_data_url(url, timeout, monitor_id):
    data = {}
    monitor = Monitor.objects.get(id=monitor_id)
+
    try:
       with requests.get(url, stream=True, timeout=timeout) as response:
          data['domain'] = url[8:]
@@ -66,6 +65,7 @@ def collect_data_url(url, timeout, monitor_id):
                )
             monitor.status = "online"
             monitor.save() 
+
    except requests.exceptions.Timeout as e:
       data['status_code'] = 408
       data['status'] = "Conection timeout"
@@ -80,6 +80,7 @@ def collect_data_url(url, timeout, monitor_id):
             )
          monitor.status = "offline"
          monitor.save()
+
    except Exception as e:
       data['status'] = "Error"
       try:
@@ -100,10 +101,12 @@ def collect_data_url(url, timeout, monitor_id):
             )
          monitor.status = "offline"
          monitor.save()
+
    if("ping" in data):
       l = Log(monitor_id=monitor, ping=data['ping'], response_time=data['respones_time'], status_code=data['status_code'], status=data['status'])
    else:
       l = Log(monitor_id=monitor, status_code=data['status_code'], status=data['status'])
+      
    l.save()
 
 

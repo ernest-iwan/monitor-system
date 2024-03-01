@@ -29,6 +29,13 @@ class EmailAdmin(admin.ModelAdmin):
     list_display = ("email",)
     list_filter = ("email",)
     search_fields = ("email",)
+    
+@admin.register(StatusPage)
+class StatusPageAdmin(admin.ModelAdmin):
+    list_display = ("name","slug")
+    list_filter = ("name","slug")
+    search_fields = ("name","slug")
+    # inlines = [MonitorInline]
 
 # class MenuAdmin(admin.ModelAdmin):
 #     # ...
@@ -45,12 +52,6 @@ class EmailAdmin(admin.ModelAdmin):
 #     # TODO url or ip or domain
 #     inlines = [EmailValuesInline]
 
-@admin.register(StatusPage)
-class StatusPageAdmin(admin.ModelAdmin):
-    list_display = ("name","slug")
-    list_filter = ("name","slug")
-    search_fields = ("name","slug")
-    # inlines = [MonitorInline]
 
 # @admin.register(StatusPage)
 # class StatusPageAdmin(admin.ModelAdmin):
