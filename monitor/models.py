@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from celery.schedules import crontab
 import json
 
 
@@ -52,7 +53,7 @@ class Monitor(models.Model):
     emails = models.ManyToManyField(Email, verbose_name=_("Emaile"))
     value_to_check = models.CharField(_("URL lub IP"), max_length=100, null=True)
     ssl_monitor = models.BooleanField(_("Monitorować SSL?"), default=False)
-
+    days_before_exp = models.IntegerField(_("Ile dni przed poinformować?"), null=True)
 
     class Meta:
         ordering = ['add_date']
@@ -79,11 +80,12 @@ class Log(models.Model):
     ping = models.IntegerField(_("Ping"), null=True)
     response_time = models.IntegerField(_("Czas odpowiedzi"), null=True)
     status_code = models.IntegerField(_("Numer Statusu"), null=True)
-    status = models.CharField(_("Status"),max_length=50)
+    status = models.CharField(_("Status"),max_length=50, null=True)
     cert_from = models.DateTimeField(_("Certyfikat ważny od"), null=True)
     cert_to = models.DateTimeField(_("Certyfikat ważny do"), null=True)
     domain_exp = models.DateTimeField(_("Domena wygasa"), null=True)
     days_to_domain_exp = models.IntegerField(_("Dni do wygaśnięcia domeny"), null=True)
+    days_to_ssl_exp = models.IntegerField(_("Dni do wygaśnięcia certyfikatu ssl"), null=True)
 
     class Meta:
         ordering = ["-request_date"]
@@ -100,6 +102,10 @@ def notification_handler(sender, instance, **kwargs):
             name=f'monitor {instance.id}', 
     )
     task.delete()
+    task2 = PeriodicTask.objects.get(
+    name=f'ssl monitor {instance.id}', 
+    )
+    task2.delete()
 
 @receiver(post_save,sender=Monitor)
 def notification_handler(sender, instance, created, **kwargs):
@@ -113,6 +119,15 @@ def notification_handler(sender, instance, created, **kwargs):
                 enabled = instance.is_active,
                 args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
+            if instance.ssl_monitor:
+                interval, created = IntervalSchedule.objects.get_or_create(every=1, period=IntervalSchedule.DAYS,)
+                task = PeriodicTask.objects.get_or_create(
+                interval=interval, 
+                name=f'ssl monitor {instance.id}', 
+                task='mysite.celery.ssl_monitor',
+                enabled = instance.is_active,
+                args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id, instance.days_before_exp]),
+                )
         elif instance.monitor_type == "ping":
             task = PeriodicTask.objects.get_or_create(
                 interval=interval, 
@@ -129,6 +144,12 @@ def notification_handler(sender, instance, created, **kwargs):
         task.enabled = instance.is_active
         if instance.monitor_type == "http request":
             task.task='mysite.celery.collect_data_url'
+            task2 = PeriodicTask.objects.get(
+            name=f'ssl monitor {instance.id}', 
+            )
+            task2.args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id, instance.days_before_exp])
+            task2.enabled = instance.is_active
+            task2.save()
         elif instance.monitor_type == "ping":
             task.task='mysite.celery.collect_data_ping'
         task.save()

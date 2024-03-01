@@ -12,7 +12,7 @@ class MonitorAdmin(admin.ModelAdmin):
     list_display = ("name", "monitor_type", "add_date", "status", "is_active")
     list_filter = ("monitor_type", "add_date", "is_active")
     search_fields = ("name",)
-    fieldsets = [('Dane', {'fields': ['name', 'monitor_type', 'request_timeout', 'interval', 'status', 'is_active', 'value_to_check', 'ssl_monitor']}),]
+    fieldsets = [('Dane', {'fields': ['name', 'monitor_type', 'request_timeout', 'interval', 'status', 'is_active', 'value_to_check', 'ssl_monitor', 'days_before_exp']}),]
     # TODO url or ip or domain
     inlines = [EmailValuesInline]
 
@@ -20,7 +20,7 @@ class MonitorAdmin(admin.ModelAdmin):
 @admin.register(Log)
 class LogAdmin(admin.ModelAdmin):
     readonly_fields = [field.name for field in Log._meta.get_fields()]
-    list_display = ("request_date", "monitor_id", "ping", "response_time", "status")
+    list_display = ("request_date", "monitor_id", "ping", "response_time", "status", "days_to_ssl_exp")
     list_filter = ("request_date", "monitor_id")
     search_fields = ("monitor_id", "status")
 
