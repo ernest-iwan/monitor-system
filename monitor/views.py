@@ -1,5 +1,7 @@
 from django.shortcuts import render
 
-# from .tasks import my_task
-
-# result = my_task.delay(3, 5)
+def status(request, slug):
+    context = {
+        "slug": slug,
+    }
+    return render(request, 'status_page/status.html', context)

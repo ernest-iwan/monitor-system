@@ -9,11 +9,6 @@ from celery.schedules import crontab
 import json
 
 
-class StatusPage(models.Model):
-    name = models.CharField(_("Nazwa"), max_length=100)
-    slug = models.SlugField(_("Slug"), unique=True, max_length=20)
-    # TODO
-
 class Email(models.Model):
     email = models.CharField(_("Email"), max_length=100)
 
@@ -59,7 +54,6 @@ class Monitor(models.Model):
         ordering = ['add_date']
         verbose_name = "Monitor"
         verbose_name_plural = "Monitory"
-
     def __str__(self):
         return _(f"{self.name} - {self.monitor_type} - ({self.status})")
 
@@ -95,6 +89,10 @@ class Log(models.Model):
     def __str__(self):
         return _(f"{self.request_date} - {self.monitor_id} - ({self.status})")
 
+class StatusPage(models.Model):
+    name = models.CharField(_("Nazwa"), max_length=100)
+    slug = models.SlugField(_("Slug"), unique=True, max_length=20)
+    monitors = models.ManyToManyField(Monitor,verbose_name=_("Monitory"))
 
 @receiver(post_delete,sender=Monitor)
 def notification_handler(sender, instance, **kwargs):
@@ -157,5 +155,5 @@ def notification_handler(sender, instance, created, **kwargs):
             task2.save()
         elif instance.monitor_type == "ping":
             task.task='mysite.celery.collect_data_ping'
-            
+
         task.save()

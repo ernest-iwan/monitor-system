@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import *
-from django.forms import BaseInlineFormSet
+from django.urls import reverse
 
 
 class EmailValuesInline(admin.TabularInline):
@@ -13,7 +13,6 @@ class MonitorAdmin(admin.ModelAdmin):
     list_filter = ("monitor_type", "add_date", "is_active")
     search_fields = ("name",)
     fieldsets = [('Dane', {'fields': ['name', 'monitor_type', 'request_timeout', 'interval', 'status', 'is_active', 'value_to_check', 'ssl_monitor', 'days_before_exp']}),]
-    # TODO url or ip or domain
     inlines = [EmailValuesInline]
 
 
@@ -29,13 +28,13 @@ class EmailAdmin(admin.ModelAdmin):
     list_display = ("email",)
     list_filter = ("email",)
     search_fields = ("email",)
-    
+
 @admin.register(StatusPage)
 class StatusPageAdmin(admin.ModelAdmin):
     list_display = ("name","slug")
     list_filter = ("name","slug")
     search_fields = ("name","slug")
-    # inlines = [MonitorInline]
+    # inlines = [Monitor]
 
 # class MenuAdmin(admin.ModelAdmin):
 #     # ...
