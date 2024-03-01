@@ -1,7 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{status_object.name}}</title>
+  </head>
   <body>
-    <p>Hi there! {{slug}}</p>
-    <p>It works!</p>
+    <h1>{{status_object.name}}</h1>
+    <div>
+      {% if monitors_status %}
+        <h2>Wszystkie usługi działają poprawnie</h2>
+      {% else %}
+        <h2>Nie wszystkie usługi działają poprawnie</h2>
+      {% endif %}
+    </div>
+    <p>Usługi</p>
+      {% for element in status_object.monitors.all %}
+        <h3>{{element.name}} ({{element.value_to_check}})</h3>
+      {% endfor %}
   </body>
 </html>
