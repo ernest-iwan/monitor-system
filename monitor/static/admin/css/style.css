@@ -1,3 +1,47 @@
+*{
+    font-family: "Roboto", sans-serif;
+    margin: 0;
+    padding: 0;
+}
+header{
+    width: 100%;
+    height: 200px;
+    background-color: #131a26;
+    color: white;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+}
+header .title{
+    width: 800px;
+    height: 80px;
+}
+
+main{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.status{
+    width: 800px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    border-radius: 15px;
+    margin-top: 30px;
+    margin-bottom: 50px;
+    z-index: 2;
+    -webkit-box-shadow: -25px 18px 39px -33px rgba(66, 68, 90, 1);
+    -moz-box-shadow: -25px 18px 39px -33px rgba(66, 68, 90, 1);
+    box-shadow: -25px 18px 39px -33px rgba(66, 68, 90, 1);
+}
+.status h2{
+    margin-left: 30px;
+}
+
 .positive{
     background-color: #AAFF00;
 }
@@ -15,10 +59,12 @@
     transition: all 0.3s;
 }
 .status-box .info-box {
+    display: block;
+    height: 40px;
     visibility: hidden;
     line-height: 1px;
     font-size: 14px;
-    padding: 0.15em 0.25em;
+    padding: 0.25em 0.35em;
     background-color: black;
     color: #fff;
     text-align: left;
@@ -28,8 +74,57 @@
     z-index: 1;
     top: 100%;
     left: 100%;
-    transition: all 0.3s;
+    transition: all 0.1s;
 }
+.info-box p{
+    margin-top: 8px;
+    height: 20px;
+}
+.info-box p:last-child{
+    margin-top: 2px;
+}
+
+.all-service-title{
+    height: 50px;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.services{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 800px;
+    min-height: 200px;
+    border-radius: 15px;
+    margin-top: 30px;
+    margin-bottom: 50px;
+    z-index: 2;
+    -webkit-box-shadow: -25px 18px 39px -33px rgba(66, 68, 90, 1);
+    -moz-box-shadow: -25px 18px 39px -33px rgba(66, 68, 90, 1);
+    box-shadow: -25px 18px 39px -33px rgba(66, 68, 90, 1);
+}
+
+.service{
+    width: 600px;
+    padding: 20px;
+}
+.online{
+    color: #3bd671;
+}
+.offline{
+    color: #FF5733;
+}
+
+.service h3{
+    margin: 10px 0;
+    font-weight: normal;
+}
+hr{
+    margin: 10px 0;
+    border: 1px solid #c7c1c1;
+}
+
 .status-box .info-box .date{
     color: #8d8d8d;
 }
