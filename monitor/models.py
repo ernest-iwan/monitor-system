@@ -3,7 +3,10 @@ from django.utils.translation import gettext as _
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from datetime import timedelta, datetime
+from collections import OrderedDict
 import json
+import tzlocal
 
 
 class Email(models.Model):
@@ -52,7 +55,34 @@ class Monitor(models.Model):
         ordering = ['add_date']
         verbose_name = "Monitor"
         verbose_name_plural = "Monitory"
+    def get_logs(self):
+        thirty_days_ago = datetime.now(tzlocal.get_localzone()) - timedelta(days=30)
+        logs = Log.objects.filter(monitor_id=self, request_date__gte=thirty_days_ago)
 
+        data = OrderedDict()
+        for log in logs:
+            log_date = log.request_date.date()
+            if log_date not in data:
+                data[log_date] = {"total": 0, "online": 0}
+
+            data[log_date]["total"] += 1
+            if log.status == "Successful responses":
+                data[log_date]["online"] += 1
+
+        thirty_days_range = [thirty_days_ago + timedelta(days=i) for i in range(31)]
+        for date in thirty_days_range:
+            if date.date() not in data:
+                data[date.date()] = {"total": 0, "online": 0}
+
+        for date, values in data.items():
+            if values["total"] > 0:
+                availability_percentage = (values["online"] / values["total"]) * 100
+                data[date] = availability_percentage
+            else:
+                data[date] = 0
+
+        sorted_data = OrderedDict(sorted(data.items()))
+        return sorted_data
     def __str__(self):
         return _(f"{self.name} - {self.monitor_type} - ({self.status})")
 
