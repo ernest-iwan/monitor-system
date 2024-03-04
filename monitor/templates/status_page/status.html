@@ -1,8 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
     <title>{{status_object.name}}</title>
   </head>
   <body>
@@ -18,7 +20,22 @@
       {% for element in status_object.monitors.all %}
         <h3>{{element.name}} ({{element.value_to_check}})</h3>
         {% for key, value in element.get_logs.items %}
-            {{ key }} {{ value }}
+            {% if value > 50 %}
+                <div class="status-box positive">
+                    <div class="info-box">
+                        <p class="date">{{ key }}</p>
+                        <p class="value">{{ value }}%</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="status-box negative">
+                    <div class="info-box">
+                        <p class="date">{{ key }}</p>
+                        <p class="value">{{ value }}%</p>
+                    </div>
+                </div>
+            {% endif %}
+{#            {{ key }} {{ value }}#}
         {% endfor %}
       {% endfor %}
   </body>

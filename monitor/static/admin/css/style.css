@@ -1,0 +1,45 @@
+.positive{
+    background-color: #AAFF00;
+}
+.negative{
+    background-color: #FF5733;
+}
+.status-box{
+    position: relative;
+    display: inline-block;
+    cursor: default;
+    height: 25px;
+    width: 7px;
+    margin: 1px;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+.status-box .info-box {
+    visibility: hidden;
+    line-height: 1px;
+    font-size: 14px;
+    padding: 0.15em 0.25em;
+    background-color: black;
+    color: #fff;
+    text-align: left;
+    border-radius: 0.45em;
+    white-space: nowrap;
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 100%;
+    transition: all 0.3s;
+}
+.status-box .info-box .date{
+    color: #8d8d8d;
+}
+.positive:hover{
+    background-color: #a3be73;
+}
+.negative:hover{
+    background-color: #e17c6c;
+}
+.status-box:hover .info-box {
+  visibility: visible;
+  transition-delay: 0.3s;
+}

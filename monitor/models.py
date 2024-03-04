@@ -77,7 +77,7 @@ class Monitor(models.Model):
         for date, values in data.items():
             if values["total"] > 0:
                 availability_percentage = (values["online"] / values["total"]) * 100
-                data[date] = availability_percentage
+                data[date] = round(availability_percentage, 2)
             else:
                 data[date] = 0
 
