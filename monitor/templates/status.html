@@ -24,7 +24,7 @@
               {% for element in status_object.monitors.all %}
 
                 <div class="service">
-                  <a href="../monitor/{{ element.id }}" target="_blank">
+                  <a href="../monitor/{{ element.id }}">
                     <span class="status-icon {% if element.status == 'online' %}online{% else %}offline{% endif %}"></span>
                     {{ element.name }} ({{ element.value_to_check }})
                   </a>

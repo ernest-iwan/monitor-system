@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'monitor',
     'django_celery_results',
     'django_celery_beat',
-    'chartjs',
 ]
 
 MIDDLEWARE = [

@@ -1,22 +1,19 @@
 {% extends 'base.html' %}
     {% block title %}
         <title>{{ monitor.name }}</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     {% endblock %}
     {% block header %}
         <div class="title">
-          <h1>{{ monitor.name }}</h1>
+          <h1>{{ monitor.name }} - ({{ monitor.value_to_check }})</h1>
         </div>
     {% endblock %}
     {% block main %}
         <div class="wrapper">
           <div class="services">
-            <div class="services-wrapper">
+            <div class="services-wrapper service-info">
+                <p class="title"><span class="status-icon {% if monitor.status == 'online' %}online{% else %}offline{% endif %}"></span> Status strony z ostatnich 30 dni</p>
                 <div class="service">
-                  <p>
-                    <span class="status-icon {% if monitor.status == 'online' %}online{% else %}offline{% endif %}"></span>
-                    {{ monitor.name }} ({{ monitor.value_to_check }})
-                  </p>
-
                   <div class="log-info">
                     {% for key, value in monitor.get_logs.items %}
                       <div class="status-box {% if value == 100 %}positive{% elif value == -1 %}neutral{% elif value < 100 %}small-positive{% else %}negative{% endif %}">
@@ -34,5 +31,93 @@
                 </div>
             </div>
           </div>
+
+          <div class="services">
+            <div class="services-wrapper service-info">
+                <p class="title">Ping z ostatnich 24 godzin</p>
+                <canvas id="pingChart" style="width:100%;max-width:600px"></canvas>
+            </div>
+          </div>
+
+
+          <div class="services">
+            <div class="services-wrapper service-info">
+                <p class="title">Czas odpowiedzi z ostatnich 24 godzin</p>
+                <canvas id="responseChart" style="width:100%;max-width:600px"></canvas>
+            </div>
+          </div>
         </div>
+
+        <script>
+            {# Ping Chart #}
+            let x_values = [];
+            let data = [];
+
+            {% for key, value in monitor.get_average_ping_last_24_hours.items %}
+                x_values.push("{{ key }}")
+                data.push({{ value }})
+            {% endfor %}
+
+            new Chart("pingChart", {
+              type: "line",
+              data: {
+                labels: x_values,
+                datasets: [{
+                  data: data,
+                  borderColor: '#289d25',
+                  backgroundColor: '#9ee89b',
+                  fill: true
+                },]
+              },
+              options: {
+                legend: {display: false},
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }],
+                    xAxis: {
+                        type: 'time',
+                    }
+                }
+              }
+            });
+
+
+            {# Response Chart#}
+            x_values = [];
+            data = [];
+
+            {% for key, value in monitor.get_average_response_time_last_24_hours.items %}
+                x_values.push("{{ key }}")
+                data.push({{ value }})
+            {% endfor %}
+
+            new Chart("responseChart", {
+              type: "line",
+              data: {
+                labels: x_values,
+                datasets: [{
+                  data: data,
+                  borderColor: '#2c7be0',
+                  backgroundColor: '#97b9e7',
+                  fill: true
+                },]
+              },
+              options: {
+                legend: {display: false},
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }],
+                    xAxis: {
+                        type: 'time',
+                    }
+                }
+              }
+            });
+        </script>
     {% endblock %}

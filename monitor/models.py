@@ -7,6 +7,8 @@ from datetime import timedelta, datetime
 from collections import OrderedDict
 import json
 import tzlocal
+from collections import defaultdict
+from operator import itemgetter
 
 
 class Email(models.Model):
@@ -83,6 +85,57 @@ class Monitor(models.Model):
 
         sorted_data = OrderedDict(sorted(data.items()))
         return sorted_data
+
+    def get_average_ping_last_24_hours(self):
+        local_tz = tzlocal.get_localzone()
+
+        time_24_hours_ago = datetime.now(local_tz) - timedelta(hours=24)
+
+        interval_data = defaultdict(lambda: {"sum_ping": 0, "count": 0})
+
+        logs = Log.objects.filter(monitor_id=self, request_date__gte=time_24_hours_ago)
+
+        for log in logs:
+            time_interval = log.request_date.astimezone(local_tz).replace(second=0, microsecond=0)
+            time_interval -= timedelta(
+                minutes=time_interval.minute % 30)
+            interval_data[time_interval]["sum_ping"] += log.ping
+            interval_data[time_interval]["count"] += 1
+
+        average_ping_data = {}
+        for time_interval, data in sorted(interval_data.items(), key=itemgetter(0)):
+            if data["count"] > 0:
+                average_ping_data[time_interval.strftime('%H:%M')] = round(data["sum_ping"] / data["count"], 1)
+            else:
+                average_ping_data[time_interval.strftime('%H:%M')] = None
+
+        return average_ping_data
+
+    def get_average_response_time_last_24_hours(self):
+        local_tz = tzlocal.get_localzone()
+
+        time_24_hours_ago = datetime.now(local_tz) - timedelta(hours=24)
+
+        interval_data = defaultdict(lambda: {"sum_response": 0, "count": 0})
+
+        logs = Log.objects.filter(monitor_id=self, request_date__gte=time_24_hours_ago)
+
+        for log in logs:
+            time_interval = log.request_date.astimezone(local_tz).replace(second=0, microsecond=0)
+            time_interval -= timedelta(
+                minutes=time_interval.minute % 30)
+            interval_data[time_interval]["sum_response"] += log.response_time
+            interval_data[time_interval]["count"] += 1
+
+        average_response_data = {}
+        for time_interval, data in sorted(interval_data.items(), key=itemgetter(0)):
+            if data["count"] > 0:
+                average_response_data[time_interval.strftime('%H:%M')] = round(data["sum_response"] / data["count"])
+            else:
+                average_response_data[time_interval.strftime('%H:%M')] = None
+
+        return average_response_data
+
     def __str__(self):
         return f"{self.name} - {self.monitor_type} - ({self.status})"
 
