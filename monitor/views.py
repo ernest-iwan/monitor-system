@@ -21,7 +21,7 @@ def status(request, slug):
         "status_object": status_object,
         "monitors_status": monitors_status,
     }
-    return render(request, 'status_page/status.html', context)
+    return render(request, 'status.html', context)
 
 def monitor(request, monitor_id):
     monitor = Monitor.objects.get(id=monitor_id)
@@ -29,4 +29,4 @@ def monitor(request, monitor_id):
     context = {
         "monitor":monitor
     }
-    return render(request, 'monitor/monitor.html', context)
+    return render(request, 'monitor.html', context)

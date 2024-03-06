@@ -1,10 +1,8 @@
 from __future__ import absolute_import, unicode_literals
-
 import os
 import urllib.request
 from datetime import timezone
 from urllib.error import HTTPError
-
 import django
 import requests
 import whois
@@ -13,12 +11,12 @@ from django.conf import settings
 from django.core.mail import send_mail
 from ping3 import ping
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from monitor.models import *
 
-app = Celery('mysite')
+app = Celery('config')
 app.config_from_object(settings, namespace='CELERY')
 app.autodiscover_tasks()
 
@@ -152,7 +150,7 @@ def ssl_monitor(url, timeout, monitor_id, days_before_to_inform):
 
 
 def notify_status_change(monitor, new_status):
-    for tmp in EmailValues.objects.filter(monitor_id=monitor.id):
+    for tmp in EmailValues.objects.filter(monitor=monitor.id):
         send_mail(
             f"Twoja monitorowana strona przeszła w status {new_status}",
             "Strona powróciła do poprawnego działania" if new_status == "online" else "Sprawdź czy wszystko działa poprawnie",
@@ -165,7 +163,7 @@ def notify_status_change(monitor, new_status):
 
 
 def notify_ssl_expiry(monitor, days_to_ssl_exp, days_to_domain_exp):
-    for tmp in EmailValues.objects.filter(monitor_id=monitor.id):
+    for tmp in EmailValues.objects.filter(monitor=monitor.id):
         send_mail(
             f"Twój certyfikat SSL wygasa za: {days_to_ssl_exp} dni",
             f"Ważność twojego certyfikatu SSL dobiega końca, natomiast domena wygasa za: {days_to_domain_exp} dni",
@@ -177,15 +175,15 @@ def notify_ssl_expiry(monitor, days_to_ssl_exp, days_to_domain_exp):
 
 def create_log_entry(monitor, data):
     if "ping" in data:
-        log = Log(monitor_id=monitor, ping=data['ping'], response_time=data['response_time'],
+        log = Log(monitor=monitor, ping=data['ping'], response_time=data['response_time'],
                   status_code=data['status_code'], status=data['status'])
     elif "domain_exp" in data:
-        log = Log(monitor_id=monitor, status=data['status'], cert_from=data['cert_from'], cert_to=data['cert_to'],
+        log = Log(monitor=monitor, status=data['status'], cert_from=data['cert_from'], cert_to=data['cert_to'],
                 domain_exp=data['domain_exp'], days_to_domain_exp=data['days_to_domain_exp'], days_to_ssl_exp=data['days_to_ssl_exp'])
     else:
-        log = Log(monitor_id=monitor, status_code=data['status_code'], status=data['status'])
+        log = Log(monitor=monitor, status_code=data['status_code'], status=data['status'])
 
     log.save()
 
 
-# celery -A mysite worker --beat --scheduler django
+# celery -A config worker --beat --scheduler django

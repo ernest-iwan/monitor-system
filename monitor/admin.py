@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import *
+from .models import Email, EmailValues, Monitor, Log, StatusPage
 
 
 class EmailValuesInline(admin.TabularInline):
@@ -22,8 +22,8 @@ class MonitorAdmin(admin.ModelAdmin):
 @admin.register(Log)
 class LogAdmin(admin.ModelAdmin):
     readonly_fields = [field.name for field in Log._meta.get_fields()]
-    list_display = ("request_date", "monitor_id", "ping", "response_time", "status", "days_to_ssl_exp")
-    list_filter = ("request_date", "monitor_id")
+    list_display = ("request_date", "monitor", "ping", "response_time", "status", "days_to_ssl_exp")
+    list_filter = ("request_date", "monitor")
     search_fields = ("monitor_id", "status")
 
 

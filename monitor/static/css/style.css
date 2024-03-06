@@ -137,7 +137,7 @@ main {
     border-radius: 5px;
 }
 
-.service a {
+.service a, .service > p {
     display: inline-block;
     text-decoration: none;
     color: black;

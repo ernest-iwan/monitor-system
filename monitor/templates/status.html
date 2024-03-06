@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+    {% block title %}
+        <title>{{ status_object.name }}</title>
+    {% endblock %}
+    {% block header %}
+        <div class="title">
+          <h1>{{ status_object.name }}</h1>
+        </div>
+    {% endblock %}
+    {% block main %}
+        <div class="wrapper">
+          <div class="status">
+            {% if monitors_status %}
+              <h2 class="success">Wszystkie usługi działają poprawnie</h2>
+            {% else %}
+              <h2 class="failure">Nie wszystkie usługi działają poprawnie</h2>
+            {% endif %}
+          </div>
+
+          <p class="all-service-title">Usługi</p>
+
+          <div class="services">
+            <div class="services-wrapper">
+              {% for element in status_object.monitors.all %}
+
+                <div class="service">
+                  <a href="../monitor/{{ element.id }}" target="_blank">
+                    <span class="status-icon {% if element.status == 'online' %}online{% else %}offline{% endif %}"></span>
+                    {{ element.name }} ({{ element.value_to_check }})
+                  </a>
+
+                  <div class="log-info">
+                    {% for key, value in element.get_logs.items %}
+                      <div class="status-box {% if value == 100 %}positive{% elif value == -1 %}neutral{% elif value < 100 %}small-positive{% else %}negative{% endif %}">
+                        <div class="info-box">
+                          <p class="date">{{ key }}</p>
+                          {% if value == -1 %}
+                            <p class="value">Brak danych</p>
+                          {% else %}
+                            <p class="value">{{ value }}%</p>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+    {% endblock %}

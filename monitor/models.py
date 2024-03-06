@@ -14,14 +14,14 @@ class Email(models.Model):
 
     class Meta:
         ordering = ["email"]
-        verbose_name = "Email"
+        verbose_name = _("Email")
+        verbose_name_plural = _("Emaile")
 
     def __str__(self):
-        return _(f"{self.email}")
-
+        return self.email
 
 class Monitor(models.Model):
-    TYPE_HTTP = "http request"
+    TYPE_HTTP = "http_request"
     TYPE_PING = "ping"
     TYPE_CRONE = "cron job"
 
@@ -53,11 +53,11 @@ class Monitor(models.Model):
 
     class Meta:
         ordering = ['add_date']
-        verbose_name = "Monitor"
-        verbose_name_plural = "Monitory"
+        verbose_name = _("Monitor")
+        verbose_name_plural = _("Monitory")
     def get_logs(self):
         thirty_days_ago = datetime.now(tzlocal.get_localzone()) - timedelta(days=30)
-        logs = Log.objects.filter(monitor_id=self, request_date__gte=thirty_days_ago)
+        logs = Log.objects.filter(monitor=self, request_date__gte=thirty_days_ago)
 
         data = OrderedDict()
         for log in logs:
@@ -84,24 +84,24 @@ class Monitor(models.Model):
         sorted_data = OrderedDict(sorted(data.items()))
         return sorted_data
     def __str__(self):
-        return _(f"{self.name} - {self.monitor_type} - ({self.status})")
+        return f"{self.name} - {self.monitor_type} - ({self.status})"
 
 
 class EmailValues(models.Model):
-    monitor_id = models.ForeignKey(Monitor, verbose_name=_("ID Monitora"), on_delete=models.CASCADE)
+    monitor = models.ForeignKey(Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE)
     email = models.ForeignKey(Email, verbose_name=_("Email"), on_delete=models.PROTECT)
 
     class Meta:
         ordering = ["email"]
-        verbose_name = "Emaile"
+        verbose_name = _("Emaile")
 
     def __str__(self):
-        return _(f"{self.email} - {self.monitor_id}")
+        return f"{self.email} - {self.monitor.name}"
 
 
 class Log(models.Model):
     request_date = models.DateTimeField(_("Data zapytania"), auto_now_add=True)
-    monitor_id = models.ForeignKey(Monitor, verbose_name=_("ID Monitora"), on_delete=models.CASCADE)
+    monitor = models.ForeignKey(Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE)
     ping = models.IntegerField(_("Ping"), null=True)
     response_time = models.IntegerField(_("Czas odpowiedzi"), null=True)
     status_code = models.IntegerField(_("Numer Statusu"), null=True)
@@ -114,11 +114,11 @@ class Log(models.Model):
 
     class Meta:
         ordering = ["-request_date"]
-        verbose_name = "Log"
-        verbose_name_plural = "Logi"
+        verbose_name = _("Log")
+        verbose_name_plural = _("Logi")
 
     def __str__(self):
-        return _(f"{self.request_date} - {self.monitor_id} - ({self.status})")
+        return f"{self.request_date} - {self.monitor} - ({self.status})"
 
 
 class StatusPage(models.Model):
@@ -132,7 +132,7 @@ class StatusPage(models.Model):
         verbose_name_plural = "Statusy stron"
 
     def __str__(self):
-        return _(f"{self.name} - {self.slug}")
+        return f"{self.name} - {self.slug}"
 
 
 @receiver(post_delete, sender=Monitor)
@@ -153,11 +153,11 @@ def notification_handler(sender, instance, created, **kwargs):
         interval, created = IntervalSchedule.objects.get_or_create(every=instance.interval,
                                                                    period=IntervalSchedule.SECONDS, )
 
-        if instance.monitor_type == "http request":
+        if instance.monitor_type == "http_request":
             task = PeriodicTask.objects.get_or_create(
                 interval=interval,
                 name=f'monitor {instance.id}',
-                task='mysite.celery.collect_data_url',
+                task='config.celery.collect_data_url',
                 enabled=instance.is_active,
                 args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
@@ -167,7 +167,7 @@ def notification_handler(sender, instance, created, **kwargs):
                 task = PeriodicTask.objects.get_or_create(
                     interval=interval,
                     name=f'ssl monitor {instance.id}',
-                    task='mysite.celery.ssl_monitor',
+                    task='config.celery.ssl_monitor',
                     enabled=instance.is_active,
                     args=json.dumps(
                         [instance.value_to_check, instance.request_timeout, instance.id, instance.days_before_exp]),
@@ -177,7 +177,7 @@ def notification_handler(sender, instance, created, **kwargs):
             task = PeriodicTask.objects.get_or_create(
                 interval=interval,
                 name=f'monitor {instance.id}',
-                task='mysite.celery.collect_data_ping',
+                task='config.celery.collect_data_ping',
                 enabled=instance.is_active,
                 args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
@@ -189,8 +189,8 @@ def notification_handler(sender, instance, created, **kwargs):
         task.args = json.dumps([instance.value_to_check, instance.request_timeout, instance.id])
         task.enabled = instance.is_active
 
-        if instance.monitor_type == "http request":
-            task.task = 'mysite.celery.collect_data_url'
+        if instance.monitor_type == "http_request":
+            task.task = 'config.celery.collect_data_url'
             task2 = PeriodicTask.objects.get(
                 name=f'ssl monitor {instance.id}',
             )
@@ -199,6 +199,6 @@ def notification_handler(sender, instance, created, **kwargs):
             task2.enabled = instance.ssl_monitor
             task2.save()
         elif instance.monitor_type == "ping":
-            task.task = 'mysite.celery.collect_data_ping'
+            task.task = 'config.celery.collect_data_ping'
 
         task.save()
