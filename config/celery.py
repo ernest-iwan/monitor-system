@@ -32,7 +32,7 @@ def collect_data_url(url, timeout, monitor_id):
 
     try:
         with requests.get(url, stream=True, timeout=timeout) as response:
-            data['domain'] = url[8:]
+            data['domain'] = url.replace('http://', '').replace('https://', '')
             data['ping'] = round(ping(data['domain'], unit='ms'))
             data['response_time'] = round(response.elapsed.total_seconds() * 1000)
             data['status_code'] = response.status_code
@@ -90,7 +90,7 @@ def collect_data_ping(url, timeout, monitor_id):
         data['status_code'] = 404
 
     try:
-        data['domain'] = url[8:]
+        data['domain'] = url.replace('http://', '').replace('https://', '')
         data['ping'] = round(ping(data['domain'], unit='ms'))
         data['status'] = "Successful responses"
         if monitor.status == "offline":
@@ -111,7 +111,7 @@ def ssl_monitor(url, timeout, monitor_id, days_before_to_inform):
 
     try:
         with requests.get(url, stream=True, timeout=timeout) as response:
-            data['domain'] = url[8:]
+            data['domain'] = url.replace('http://', '').replace('https://', '')
             w = whois.whois(data['domain'])
             certificate_info = response.raw.connection.sock.getpeercert()
             tmp = datetime.strptime((certificate_info["notBefore"])[0:-4], '%b %d %H:%M:%S %Y')
