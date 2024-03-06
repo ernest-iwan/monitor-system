@@ -52,16 +52,24 @@ main {
     background-color: #AAFF00;
 }
 
+.positive:hover{
+    background-color: #9ab46b;
+}
+
 .small-positive {
     background-color: #9ab46b;
 }
 
-.negative {
-    background-color: #FF5733;
+.small-positive:hover{
+    background-color: #838080;
 }
 
 .neutral {
     background-color: #838080;
+}
+
+.negative {
+    background-color: #FF5733;
 }
 
 .success {
@@ -129,9 +137,18 @@ main {
     border-radius: 5px;
 }
 
-.service h3 {
+.service a {
+    display: inline-block;
+    text-decoration: none;
+    color: black;
     margin: 10px 0;
     font-weight: normal;
+    font-size: 17px;
+    transition: 0.3s all;
+}
+
+.service a:hover{
+    color: #5b5a5a;
 }
 
 .status-icon {

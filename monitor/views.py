@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import StatusPage, Log
+from .models import StatusPage, Monitor
 from django.template.defaulttags import register
 @register.filter
 def get_item(dictionary, key):
@@ -22,3 +22,11 @@ def status(request, slug):
         "monitors_status": monitors_status,
     }
     return render(request, 'status_page/status.html', context)
+
+def monitor(request, monitor_id):
+    monitor = Monitor.objects.get(id=monitor_id)
+
+    context = {
+        "monitor":monitor
+    }
+    return render(request, 'monitor/monitor.html', context)
