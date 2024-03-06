@@ -118,6 +118,7 @@ def ssl_monitor(url, timeout, monitor_id, days_before_to_inform):
             data['cert_from'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
             tmp = datetime.strptime((certificate_info["notAfter"])[0:-4], '%b %d %H:%M:%S %Y')
             data['cert_to'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
+            data['ping'] = round(ping(data['domain'], unit='ms'))
 
             if type(w.expiration_date) == list:
                 w.expiration_date = w.expiration_date[0]
@@ -178,10 +179,10 @@ def create_log_entry(monitor, data):
         log = Log(monitor=monitor, ping=data['ping'], response_time=data['response_time'],
                   status_code=data['status_code'], status=data['status'])
     elif "domain_exp" in data:
-        log = Log(monitor=monitor, status=data['status'], cert_from=data['cert_from'], cert_to=data['cert_to'],
+        log = Log(monitor=monitor, ping=data['ping'], response_time=0, status=data['status'], cert_from=data['cert_from'], cert_to=data['cert_to'],
                 domain_exp=data['domain_exp'], days_to_domain_exp=data['days_to_domain_exp'], days_to_ssl_exp=data['days_to_ssl_exp'])
     else:
-        log = Log(monitor=monitor, status_code=data['status_code'], status=data['status'])
+        log = Log(monitor=monitor, ping=0, response_time=0, status_code=data['status_code'], status=data['status'])
 
     log.save()
 

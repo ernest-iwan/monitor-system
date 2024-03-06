@@ -190,3 +190,29 @@ hr {
     display: block;
     transition-delay: 0.3s;
 }
+
+.info-card{
+    width: 90%;
+    padding: 20px;
+    margin: 15px 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.info-date{
+    font-size: 20px;
+    margin: 10px 0;
+}
+
+.status-values{
+    margin: 10px;
+}
+
+.status-values p{
+    margin: 15px;
+    font-size: 15px;
+    font-weight: bold;
+}

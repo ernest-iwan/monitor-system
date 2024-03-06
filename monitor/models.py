@@ -136,6 +136,26 @@ class Monitor(models.Model):
 
         return average_response_data
 
+    def get_logs_with_different_status(self):
+        logs = Log.objects.filter(monitor=self).order_by('request_date')
+
+        previous_status = None
+        different_status_logs = {}
+
+        for log in logs:
+            if log.status != previous_status:
+                timestamp = log.request_date.strftime("%H:%M")
+                if log.request_date.date() not in different_status_logs:
+                    different_status_logs[log.request_date.date()] = []
+                if log.status == "Successful responses":
+                    message = f"<p style='color: #3bd671;'>{timestamp} - {log.status}</p>"
+                else:
+                    message = f"<p style='color: #FF5733;'>{timestamp} - {log.status}</p>"
+                different_status_logs[log.request_date.date()].insert(0, message)
+            previous_status = log.status
+
+        return different_status_logs
+
     def __str__(self):
         return f"{self.name} - {self.monitor_type} - ({self.status})"
 
