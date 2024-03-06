@@ -80,7 +80,20 @@
                     xAxis: {
                         type: 'time',
                     }
-                }
+                },
+                tooltips: {
+                    displayColors: false,
+                    enabled: true,
+                    titleFont: { weight: 'bold' },
+                    padding: 10,
+                    yAlign: 'top',
+                    xAlign: "center",
+                    callbacks: {
+                        label: function(tooltipItems, data) {
+                            return tooltipItems.yLabel + ' ms';
+                        }
+                    }
+                },
               }
             });
 
@@ -116,7 +129,20 @@
                     xAxis: {
                         type: 'time',
                     }
-                }
+                },
+                tooltips: {
+                    displayColors: false,
+                    enabled: true,
+                    titleFont: { weight: 'bold' },
+                    padding: 10,
+                    yAlign: 'top',
+                    xAlign: "center",
+                    callbacks: {
+                        label: function(tooltipItems, data) {
+                            return tooltipItems.yLabel + ' ms';
+                        }
+                    }
+                },
               }
             });
         </script>
