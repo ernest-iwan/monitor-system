@@ -1,67 +1,56 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
-    <title>{{status_object.name}}</title>
-  </head>
-  <body>
-    <header>
-        <div class="title">
-            <h1>{{status_object.name}}</h1>
-        </div>
-    </header>
-    <main>
-        <div class="wrapper">
-            <div class="status">
-              {% if monitors_status %}
-                  <h2 style="color: #3bd671">Wszystkie usługi działają poprawnie</h2>
-              {% else %}
-                <h2 style="color: #FF5733">Nie wszystkie usługi działają poprawnie</h2>
-              {% endif %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ status_object.name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'admin/css/style.css' %}">
+</head>
+<body>
+  <header>
+    <div class="title">
+      <h1>{{ status_object.name }}</h1>
+    </div>
+  </header>
+  <main>
+    <div class="wrapper">
+      <div class="status">
+        {% if monitors_status %}
+          <h2 class="success">Wszystkie usługi działają poprawnie</h2>
+        {% else %}
+          <h2 class="failure">Nie wszystkie usługi działają poprawnie</h2>
+        {% endif %}
+      </div>
+      <p class="all-service-title">Usługi</p>
+      <div class="services">
+        <div class="services-wrapper">
+          {% for element in status_object.monitors.all %}
+            <div class="service">
+              <h3>
+                <span class="status-icon {% if element.status == 'online' %}online{% else %}offline{% endif %}"></span>
+                {{ element.name }} ({{ element.value_to_check }})
+              </h3>
+              <div class="log-info">
+                {% for key, value in element.get_logs.items %}
+                  <div class="status-box {% if value == 100 %}positive{% elif value == -1 %}neutral{% elif value < 100 %}small-positive{% else %}negative{% endif %}">
+                    <div class="info-box">
+                      <p class="date">{{ key }}</p>
+                      {% if value == -1 %}
+                        <p class="value">Brak danych</p>
+                      {% else %}
+                        <p class="value">{{ value }}%</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
             </div>
-            <p class="all-service-title">Usługi</p>
-            <div class="services">
-                <div class="services-wrapper">
-
-                  {% for element in status_object.monitors.all %}
-                      <div class="service">
-                      <h3>
-                        {% if element.status == "online" %}
-                        	<span class="online">●</span>
-                        {% else %}
-                            <span class="offline">●</span>
-                        {% endif %} 
-                        {{element.name}} ({{element.value_to_check}})</h3>
-                        {% for key, value in element.get_logs.items %}
-                            {% if value > 50 %}
-                                <div class="status-box positive">
-                                    <div class="info-box">
-                                        <p class="date">{{ key }}</p>
-                                        <p class="value">{{ value }}%</p>
-                                    </div>
-                                </div>
-                            {% else %}
-                                <div class="status-box negative">
-                                    <div class="info-box">
-                                        <p class="date">{{ key }}</p>
-                                        <p class="value">{{ value }}%</p>
-                                    </div>
-                                </div>
-                            {% endif %}
-                {#            {{ key }} {{ value }}#}
-                        {% endfor %}
-                        <hr>
-                      </div>
-                  {% endfor %}
-                </div>
-            </div>
+          {% endfor %}
         </div>
-    </main>
-  </body>
+      </div>
+    </div>
+  </main>
+</body>
 </html>

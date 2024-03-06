@@ -72,14 +72,14 @@ class Monitor(models.Model):
         thirty_days_range = [thirty_days_ago + timedelta(days=i) for i in range(31)]
         for date in thirty_days_range:
             if date.date() not in data:
-                data[date.date()] = {"total": 0, "online": 0}
+                data[date.date()] = {"total": -1, "online": -1}
 
         for date, values in data.items():
             if values["total"] > 0:
                 availability_percentage = (values["online"] / values["total"]) * 100
                 data[date] = round(availability_percentage, 2)
             else:
-                data[date] = 0
+                data[date] = -1
 
         sorted_data = OrderedDict(sorted(data.items()))
         return sorted_data
@@ -196,7 +196,7 @@ def notification_handler(sender, instance, created, **kwargs):
             )
             task2.args = json.dumps(
                 [instance.value_to_check, instance.request_timeout, instance.id, instance.days_before_exp])
-            task2.enabled = instance.is_active
+            task2.enabled = instance.ssl_monitor
             task2.save()
         elif instance.monitor_type == "ping":
             task.task = 'mysite.celery.collect_data_ping'
