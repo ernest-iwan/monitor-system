@@ -93,7 +93,7 @@ class Monitor(models.Model):
 
         interval_data = defaultdict(lambda: {"sum_ping": 0, "count": 0})
 
-        logs = Log.objects.filter(monitor_id=self, request_date__gte=time_24_hours_ago)
+        logs = Log.objects.filter(monitor=self, request_date__gte=time_24_hours_ago)
 
         for log in logs:
             time_interval = log.request_date.astimezone(local_tz).replace(second=0, microsecond=0)
@@ -105,7 +105,7 @@ class Monitor(models.Model):
         average_ping_data = {}
         for time_interval, data in sorted(interval_data.items(), key=itemgetter(0)):
             if data["count"] > 0:
-                average_ping_data[time_interval.strftime('%H:%M')] = round(data["sum_ping"] / data["count"], 1)
+                average_ping_data[time_interval.strftime('%H:%M')] = round(data["sum_ping"] / data["count"])
             else:
                 average_ping_data[time_interval.strftime('%H:%M')] = None
 
@@ -118,7 +118,7 @@ class Monitor(models.Model):
 
         interval_data = defaultdict(lambda: {"sum_response": 0, "count": 0})
 
-        logs = Log.objects.filter(monitor_id=self, request_date__gte=time_24_hours_ago)
+        logs = Log.objects.filter(monitor=self, request_date__gte=time_24_hours_ago)
 
         for log in logs:
             time_interval = log.request_date.astimezone(local_tz).replace(second=0, microsecond=0)

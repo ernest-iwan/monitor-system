@@ -47,7 +47,6 @@
             </div>
           </div>
         </div>
-
         <script>
             {# Ping Chart #}
             let x_values = [];
@@ -70,6 +69,9 @@
                 },]
               },
               options: {
+                layout: {
+                    padding: 20
+                },
                 legend: {display: false},
                 scales: {
                     yAxes: [{
@@ -87,7 +89,7 @@
                     enabled: true,
                     titleFont: { weight: 'bold' },
                     padding: 10,
-                    yAlign: 'top',
+                    yAlign: 'bottom',
                     xAlign: "center",
                     callbacks: {
                         label: function(tooltipItems, data) {
@@ -120,6 +122,9 @@
                 },]
               },
               options: {
+                layout: {
+                    padding: 20
+                },
                 legend: {display: false},
                 scales: {
                     yAxes: [{
@@ -136,7 +141,7 @@
                     enabled: true,
                     titleFont: { weight: 'bold' },
                     padding: 10,
-                    yAlign: 'top',
+                    yAlign: 'bottom',
                     xAlign: "center",
                     callbacks: {
                         label: function(tooltipItems, data) {
