@@ -11,13 +11,13 @@ from django.conf import settings
 from django.core.mail import send_mail
 from ping3 import ping
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from monitor.models import *
 
-app = Celery('config')
-app.config_from_object(settings, namespace='CELERY')
+app = Celery("config")
+app.config_from_object(settings, namespace="CELERY")
 app.autodiscover_tasks()
 
 time_zone = tzlocal.get_localzone()
@@ -32,43 +32,43 @@ def collect_data_url(url, timeout, monitor_id):
 
     try:
         with requests.get(url, stream=True, timeout=timeout) as response:
-            data['domain'] = url.replace('http://', '').replace('https://', '')
-            data['ping'] = round(ping(data['domain'], unit='ms'))
-            data['response_time'] = round(response.elapsed.total_seconds() * 1000)
-            data['status_code'] = response.status_code
+            data["domain"] = url.replace("http://", "").replace("https://", "")
+            data["ping"] = round(ping(data["domain"], unit="ms"))
+            data["response_time"] = round(response.elapsed.total_seconds() * 1000)
+            data["status_code"] = response.status_code
 
             # Map status code ranges to status categories
-            match data['status_code']:
+            match data["status_code"]:
                 case code if 100 <= code <= 199:
-                    data['status'] = "Informational responses"
+                    data["status"] = "Informational responses"
                 case code if 200 <= code <= 299:
-                    data['status'] = "Successful responses"
+                    data["status"] = "Successful responses"
                 case code if 300 <= code <= 399:
-                    data['status'] = "Redirection messages"
+                    data["status"] = "Redirection messages"
                 case code if 400 <= code <= 499:
-                    data['status'] = "Client error responses"
+                    data["status"] = "Client error responses"
                 case code if 500 <= code <= 599:
-                    data['status'] = "Server error responses "
+                    data["status"] = "Server error responses "
 
             # If monitor status changes, notify via email
             if monitor.status == "offline":
                 notify_status_change(monitor, "online")
 
     except requests.exceptions.Timeout:
-        data['status_code'] = 408
-        data['status'] = "Connection timeout"
+        data["status_code"] = 408
+        data["status"] = "Connection timeout"
         if monitor.status == "online":
             notify_status_change(monitor, "offline")
 
     except Exception:
-        data['status'] = "Error"
+        data["status"] = "Error"
         try:
             conn = urllib.request.urlopen(url)
-            data['status_code'] = conn.getcode()
+            data["status_code"] = conn.getcode()
         except HTTPError as e:
-            data['status_code'] = e.code
+            data["status_code"] = e.code
         except:
-            data['status_code'] = 404
+            data["status_code"] = 404
         if monitor.status == "online":
             notify_status_change(monitor, "offline")
 
@@ -83,23 +83,24 @@ def collect_data_ping(url, timeout, monitor_id):
 
     try:
         conn = urllib.request.urlopen(url)
-        data['status_code'] = conn.getcode()
+        data["status_code"] = conn.getcode()
     except HTTPError as e:
-        data['status_code'] = e.code
+        data["status_code"] = e.code
     except:
-        data['status_code'] = 404
+        data["status_code"] = 404
 
     try:
-        data['domain'] = url.replace('http://', '').replace('https://', '')
-        data['ping'] = round(ping(data['domain'], unit='ms'))
-        data['status'] = "Successful responses"
+        data["domain"] = url.replace("http://", "").replace("https://", "")
+        data["ping"] = round(ping(data["domain"], unit="ms"))
+        data["status"] = "Successful responses"
         if monitor.status == "offline":
             notify_status_change(monitor, "online")
     except Exception:
-        data['status'] = "Error"
+        data["status"] = "Error"
         if monitor.status == "online":
             notify_status_change(monitor, "offline")
 
+    data["response_time"] = 0
     # Create log entry
     create_log_entry(monitor, data)
 
@@ -111,41 +112,62 @@ def ssl_monitor(url, timeout, monitor_id, days_before_to_inform):
 
     try:
         with requests.get(url, stream=True, timeout=timeout) as response:
-            data['domain'] = url.replace('http://', '').replace('https://', '')
-            w = whois.whois(data['domain'])
+            data["domain"] = url.replace("http://", "").replace("https://", "")
+            w = whois.whois(data["domain"])
             certificate_info = response.raw.connection.sock.getpeercert()
-            tmp = datetime.strptime((certificate_info["notBefore"])[0:-4], '%b %d %H:%M:%S %Y')
-            data['cert_from'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-            tmp = datetime.strptime((certificate_info["notAfter"])[0:-4], '%b %d %H:%M:%S %Y')
-            data['cert_to'] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-            data['ping'] = round(ping(data['domain'], unit='ms'))
+            tmp = datetime.strptime(
+                (certificate_info["notBefore"])[0:-4], "%b %d %H:%M:%S %Y"
+            )
+            data["cert_from"] = (
+                tmp.replace(tzinfo=timezone.utc)
+                .astimezone(time_zone)
+                .strftime(format_str)
+            )
+            tmp = datetime.strptime(
+                (certificate_info["notAfter"])[0:-4], "%b %d %H:%M:%S %Y"
+            )
+            data["cert_to"] = (
+                tmp.replace(tzinfo=timezone.utc)
+                .astimezone(time_zone)
+                .strftime(format_str)
+            )
+            data["ping"] = round(ping(data["domain"], unit="ms"))
 
             if type(w.expiration_date) == list:
                 w.expiration_date = w.expiration_date[0]
 
-            data['domain_exp'] = w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
-            timedelta = w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone) - now
-            data['days_to_domain_exp'] = timedelta.days
+            data["domain_exp"] = (
+                w.expiration_date.replace(tzinfo=timezone.utc)
+                .astimezone(time_zone)
+                .strftime(format_str)
+            )
+            timedelta = (
+                w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone)
+                - now
+            )
+            data["days_to_domain_exp"] = timedelta.days
 
             timedelta = (tmp.replace(tzinfo=timezone.utc).astimezone(time_zone)) - now
-            data['days_to_ssl_exp'] = timedelta.days
+            data["days_to_ssl_exp"] = timedelta.days
 
-            if data['days_to_ssl_exp'] < days_before_to_inform:
-                notify_ssl_expiry(monitor, data['days_to_ssl_exp'], data['days_to_domain_exp'])
+            if data["days_to_ssl_exp"] < days_before_to_inform:
+                notify_ssl_expiry(
+                    monitor, data["days_to_ssl_exp"], data["days_to_domain_exp"]
+                )
 
-            data['status'] = "Successful responses"
+            data["status"] = "Successful responses"
 
     except Exception:
-        data['status'] = "SSL check error"
+        data["status"] = "SSL check error"
 
     # Create log entry
     try:
         conn = urllib.request.urlopen(url)
-        data['status_code'] = conn.getcode()
+        data["status_code"] = conn.getcode()
     except HTTPError as e:
-        data['status_code'] = e.code
+        data["status_code"] = e.code
     except:
-        data['status_code'] = 404
+        data["status_code"] = 404
 
     create_log_entry(monitor, data)
 
@@ -154,7 +176,11 @@ def notify_status_change(monitor, new_status):
     for tmp in EmailValues.objects.filter(monitor=monitor.id):
         send_mail(
             f"Twoja monitorowana strona przeszła w status {new_status}",
-            "Strona powróciła do poprawnego działania" if new_status == "online" else "Sprawdź czy wszystko działa poprawnie",
+            (
+                "Strona powróciła do poprawnego działania"
+                if new_status == "online"
+                else "Sprawdź czy wszystko działa poprawnie"
+            ),
             settings.EMAIL_HOST_USER,
             [tmp.email],
             fail_silently=False,
@@ -176,13 +202,33 @@ def notify_ssl_expiry(monitor, days_to_ssl_exp, days_to_domain_exp):
 
 def create_log_entry(monitor, data):
     if "ping" in data:
-        log = Log(monitor=monitor, ping=data['ping'], response_time=data['response_time'],
-                  status_code=data['status_code'], status=data['status'])
+        log = Log(
+            monitor=monitor,
+            ping=data["ping"],
+            response_time=data["response_time"],
+            status_code=data["status_code"],
+            status=data["status"],
+        )
     elif "domain_exp" in data:
-        log = Log(monitor=monitor, ping=data['ping'], response_time=0, status=data['status'], cert_from=data['cert_from'], cert_to=data['cert_to'],
-                domain_exp=data['domain_exp'], days_to_domain_exp=data['days_to_domain_exp'], days_to_ssl_exp=data['days_to_ssl_exp'])
+        log = Log(
+            monitor=monitor,
+            ping=data["ping"],
+            response_time=0,
+            status=data["status"],
+            cert_from=data["cert_from"],
+            cert_to=data["cert_to"],
+            domain_exp=data["domain_exp"],
+            days_to_domain_exp=data["days_to_domain_exp"],
+            days_to_ssl_exp=data["days_to_ssl_exp"],
+        )
     else:
-        log = Log(monitor=monitor, ping=0, response_time=0, status_code=data['status_code'], status=data['status'])
+        log = Log(
+            monitor=monitor,
+            ping=0,
+            response_time=0,
+            status_code=data["status_code"],
+            status=data["status"],
+        )
 
     log.save()
 

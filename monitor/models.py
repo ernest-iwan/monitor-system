@@ -7,6 +7,7 @@ from datetime import timedelta, datetime
 from collections import OrderedDict
 import json
 import tzlocal
+from django.utils import timezone
 from collections import defaultdict
 from operator import itemgetter
 
@@ -21,6 +22,7 @@ class Email(models.Model):
 
     def __str__(self):
         return self.email
+
 
 class Monitor(models.Model):
     TYPE_HTTP = "http_request"
@@ -42,21 +44,28 @@ class Monitor(models.Model):
     )
 
     name = models.CharField("Nazwa", max_length=100)
-    monitor_type = models.CharField(_("Typ monitorowania"), max_length=15, choices=TYPES, default=TYPE_HTTP)
+    monitor_type = models.CharField(
+        _("Typ monitorowania"), max_length=15, choices=TYPES, default=TYPE_HTTP
+    )
     request_timeout = models.FloatField(_("Czas oczekiwania na żądanie"))
     interval = models.FloatField(_("Interwał"))
     add_date = models.DateTimeField(_("Data dodania"), auto_now_add=True)
-    status = models.CharField(_("Status"), max_length=15, choices=STATUSES, default=STATUS_ONLINE)
+    status = models.CharField(
+        _("Status"), max_length=15, choices=STATUSES, default=STATUS_ONLINE
+    )
     is_active = models.BooleanField(_("Czy aktywny?"))
     emails = models.ManyToManyField(Email, verbose_name=_("Emaile"))
     value_to_check = models.CharField(_("URL lub IP"), max_length=100, null=True)
     ssl_monitor = models.BooleanField(_("Monitorować SSL?"), default=False)
-    days_before_exp = models.IntegerField(_("Ile dni przed poinformować?"), null=True)
+    days_before_exp = models.IntegerField(
+        _("Ile dni przed poinformować?"), null=True, blank=True
+    )
 
     class Meta:
-        ordering = ['add_date']
+        ordering = ["add_date"]
         verbose_name = _("Monitor")
         verbose_name_plural = _("Monitory")
+
     def get_logs(self):
         thirty_days_ago = datetime.now(tzlocal.get_localzone()) - timedelta(days=30)
         logs = Log.objects.filter(monitor=self, request_date__gte=thirty_days_ago)
@@ -89,79 +98,102 @@ class Monitor(models.Model):
     def get_average_ping_last_24_hours(self):
         local_tz = tzlocal.get_localzone()
 
-        time_24_hours_ago = datetime.now(local_tz) - timedelta(hours=24)
+        time_24_hours_ago = timezone.now() - timedelta(hours=24)
 
         interval_data = defaultdict(lambda: {"sum_ping": 0, "count": 0})
 
         logs = Log.objects.filter(monitor=self, request_date__gte=time_24_hours_ago)
 
         for log in logs:
-            time_interval = log.request_date.astimezone(local_tz).replace(second=0, microsecond=0)
-            time_interval -= timedelta(
-                minutes=time_interval.minute % 30)
+            time_interval = log.request_date.astimezone(local_tz).replace(
+                second=0, microsecond=0
+            )
+            time_interval -= timedelta(minutes=time_interval.minute % 30)
             interval_data[time_interval]["sum_ping"] += log.ping
             interval_data[time_interval]["count"] += 1
 
         average_ping_data = {}
         for time_interval, data in sorted(interval_data.items(), key=itemgetter(0)):
             if data["count"] > 0:
-                average_ping_data[time_interval.strftime('%H:%M')] = round(data["sum_ping"] / data["count"])
+                average_ping_data[time_interval.strftime("%H:%M")] = round(
+                    data["sum_ping"] / data["count"]
+                )
             else:
-                average_ping_data[time_interval.strftime('%H:%M')] = None
+                average_ping_data[time_interval.strftime("%H:%M")] = None
 
         return average_ping_data
 
     def get_average_response_time_last_24_hours(self):
         local_tz = tzlocal.get_localzone()
 
-        time_24_hours_ago = datetime.now(local_tz) - timedelta(hours=24)
+        time_24_hours_ago = timezone.now() - timedelta(hours=24)
 
         interval_data = defaultdict(lambda: {"sum_response": 0, "count": 0})
 
         logs = Log.objects.filter(monitor=self, request_date__gte=time_24_hours_ago)
 
         for log in logs:
-            time_interval = log.request_date.astimezone(local_tz).replace(second=0, microsecond=0)
-            time_interval -= timedelta(
-                minutes=time_interval.minute % 30)
+            time_interval = log.request_date.astimezone(local_tz).replace(
+                second=0, microsecond=0
+            )
+            time_interval -= timedelta(minutes=time_interval.minute % 30)
             interval_data[time_interval]["sum_response"] += log.response_time
             interval_data[time_interval]["count"] += 1
 
         average_response_data = {}
         for time_interval, data in sorted(interval_data.items(), key=itemgetter(0)):
             if data["count"] > 0:
-                average_response_data[time_interval.strftime('%H:%M')] = round(data["sum_response"] / data["count"])
+                average_response_data[time_interval.strftime("%H:%M")] = round(
+                    data["sum_response"] / data["count"]
+                )
             else:
-                average_response_data[time_interval.strftime('%H:%M')] = None
+                average_response_data[time_interval.strftime("%H:%M")] = None
 
         return average_response_data
 
     def get_logs_with_different_status(self):
-        logs = Log.objects.filter(monitor=self).order_by('request_date')
+        logs = Log.objects.filter(monitor=self).order_by("request_date")
 
         previous_status = None
-        different_status_logs = {}
+        different_status_logs = defaultdict(list)
+
+        local_timezone = tzlocal.get_localzone()
 
         for log in logs:
             if log.status != previous_status:
-                timestamp = log.request_date.strftime("%H:%M")
-                if log.request_date.date() not in different_status_logs:
-                    different_status_logs[log.request_date.date()] = []
-                if log.status == "Successful responses":
-                    message = f"<p style='color: #3bd671;'>{timestamp} - {log.status}</p>"
-                else:
-                    message = f"<p style='color: #FF5733;'>{timestamp} - {log.status}</p>"
-                different_status_logs[log.request_date.date()].insert(0, message)
-            previous_status = log.status
+                local_date = log.request_date.astimezone(local_timezone)
+                date_key = local_date.date()
 
-        return different_status_logs
+                timestamp = local_date.strftime("%H:%M:%S")
+
+                if log.status == "Successful responses":
+                    message = (
+                        f"<p style='color: #3bd671;'>{timestamp} - {log.status}</p>"
+                    )
+                else:
+                    message = (
+                        f"<p style='color: #FF5733;'>{timestamp} - {log.status}</p>"
+                    )
+
+                different_status_logs[date_key].append(message)
+
+                previous_status = log.status
+
+        for date_key in different_status_logs:
+            different_status_logs[date_key].reverse()
+
+        different_status_logs = dict(reversed(different_status_logs.items()))
+
+        return dict(different_status_logs)
 
     def __str__(self):
         return f"{self.name} - {self.monitor_type} - ({self.status})"
 
 
 class EmailValues(models.Model):
-    monitor = models.ForeignKey(Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE)
+    monitor = models.ForeignKey(
+        Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE
+    )
     email = models.ForeignKey(Email, verbose_name=_("Email"), on_delete=models.PROTECT)
 
     class Meta:
@@ -174,7 +206,9 @@ class EmailValues(models.Model):
 
 class Log(models.Model):
     request_date = models.DateTimeField(_("Data zapytania"), auto_now_add=True)
-    monitor = models.ForeignKey(Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE)
+    monitor = models.ForeignKey(
+        Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE
+    )
     ping = models.IntegerField(_("Ping"), null=True)
     response_time = models.IntegerField(_("Czas odpowiedzi"), null=True)
     status_code = models.IntegerField(_("Numer Statusu"), null=True)
@@ -183,7 +217,9 @@ class Log(models.Model):
     cert_to = models.DateTimeField(_("Certyfikat ważny do"), null=True)
     domain_exp = models.DateTimeField(_("Domena wygasa"), null=True)
     days_to_domain_exp = models.IntegerField(_("Dni do wygaśnięcia domeny"), null=True)
-    days_to_ssl_exp = models.IntegerField(_("Dni do wygaśnięcia certyfikatu ssl"), null=True)
+    days_to_ssl_exp = models.IntegerField(
+        _("Dni do wygaśnięcia certyfikatu ssl"), null=True
+    )
 
     class Meta:
         ordering = ["-request_date"]
@@ -211,11 +247,11 @@ class StatusPage(models.Model):
 @receiver(post_delete, sender=Monitor)
 def notification_handler(sender, instance, **kwargs):
     task = PeriodicTask.objects.get(
-        name=f'monitor {instance.id}',
+        name=f"monitor {instance.id}",
     )
     task.delete()
     task2 = PeriodicTask.objects.get(
-        name=f'ssl monitor {instance.id}',
+        name=f"ssl monitor {instance.id}",
     )
     task2.delete()
 
@@ -223,55 +259,78 @@ def notification_handler(sender, instance, **kwargs):
 @receiver(post_save, sender=Monitor)
 def notification_handler(sender, instance, created, **kwargs):
     if created:
-        interval, created = IntervalSchedule.objects.get_or_create(every=instance.interval,
-                                                                   period=IntervalSchedule.SECONDS, )
+        interval, created = IntervalSchedule.objects.get_or_create(
+            every=instance.interval,
+            period=IntervalSchedule.SECONDS,
+        )
 
         if instance.monitor_type == "http_request":
             task = PeriodicTask.objects.get_or_create(
                 interval=interval,
-                name=f'monitor {instance.id}',
-                task='config.celery.collect_data_url',
+                name=f"monitor {instance.id}",
+                task="config.celery.collect_data_url",
                 enabled=instance.is_active,
-                args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
+                args=json.dumps(
+                    [instance.value_to_check, instance.request_timeout, instance.id]
+                ),
             )
 
             if instance.ssl_monitor:
-                interval, created = IntervalSchedule.objects.get_or_create(every=1, period=IntervalSchedule.DAYS, )
+                interval, created = IntervalSchedule.objects.get_or_create(
+                    every=1,
+                    period=IntervalSchedule.DAYS,
+                )
                 task = PeriodicTask.objects.get_or_create(
                     interval=interval,
-                    name=f'ssl monitor {instance.id}',
-                    task='config.celery.ssl_monitor',
+                    name=f"ssl monitor {instance.id}",
+                    task="config.celery.ssl_monitor",
                     enabled=instance.is_active,
                     args=json.dumps(
-                        [instance.value_to_check, instance.request_timeout, instance.id, instance.days_before_exp]),
+                        [
+                            instance.value_to_check,
+                            instance.request_timeout,
+                            instance.id,
+                            instance.days_before_exp,
+                        ]
+                    ),
                 )
 
         elif instance.monitor_type == "ping":
             task = PeriodicTask.objects.get_or_create(
                 interval=interval,
-                name=f'monitor {instance.id}',
-                task='config.celery.collect_data_ping',
+                name=f"monitor {instance.id}",
+                task="config.celery.collect_data_ping",
                 enabled=instance.is_active,
-                args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
+                args=json.dumps(
+                    [instance.value_to_check, instance.request_timeout, instance.id]
+                ),
             )
 
     if not created:
         task = PeriodicTask.objects.get(
-            name=f'monitor {instance.id}',
+            name=f"monitor {instance.id}",
         )
-        task.args = json.dumps([instance.value_to_check, instance.request_timeout, instance.id])
+        task.args = json.dumps(
+            [instance.value_to_check, instance.request_timeout, instance.id]
+        )
         task.enabled = instance.is_active
 
         if instance.monitor_type == "http_request":
-            task.task = 'config.celery.collect_data_url'
+            task.task = "config.celery.collect_data_url"
             task2 = PeriodicTask.objects.get(
-                name=f'ssl monitor {instance.id}',
+                name=f"ssl monitor {instance.id}",
             )
             task2.args = json.dumps(
-                [instance.value_to_check, instance.request_timeout, instance.id, instance.days_before_exp])
+                [
+                    instance.value_to_check,
+                    instance.request_timeout,
+                    instance.id,
+                    instance.days_before_exp,
+                ]
+            )
             task2.enabled = instance.ssl_monitor
             task2.save()
         elif instance.monitor_type == "ping":
-            task.task = 'config.celery.collect_data_ping'
+            task.task = "config.celery.collect_data_ping"
 
         task.save()
