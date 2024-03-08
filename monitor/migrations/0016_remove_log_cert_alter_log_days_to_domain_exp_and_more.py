@@ -6,27 +6,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('monitor', '0015_remove_log_domain_log_monitor_id'),
+        ("monitor", "0015_remove_log_domain_log_monitor_id"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='log',
-            name='cert',
+            model_name="log",
+            name="cert",
         ),
         migrations.AlterField(
-            model_name='log',
-            name='days_to_domain_exp',
-            field=models.IntegerField(null=True, verbose_name='Dni do wygaśnięcia domeny'),
+            model_name="log",
+            name="days_to_domain_exp",
+            field=models.IntegerField(
+                null=True, verbose_name="Dni do wygaśnięcia domeny"
+            ),
         ),
         migrations.AlterField(
-            model_name='log',
-            name='ping',
-            field=models.IntegerField(null=True, verbose_name='Ping'),
+            model_name="log",
+            name="ping",
+            field=models.IntegerField(null=True, verbose_name="Ping"),
         ),
         migrations.AlterField(
-            model_name='log',
-            name='response_time',
-            field=models.IntegerField(null=True, verbose_name='Czas odpowiedzi'),
+            model_name="log",
+            name="response_time",
+            field=models.IntegerField(null=True, verbose_name="Czas odpowiedzi"),
         ),
     ]

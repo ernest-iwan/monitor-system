@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('monitor', '0018_monitor_ssl_monitor'),
+        ("monitor", "0018_monitor_ssl_monitor"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='monitor',
-            name='ssl_monitor',
-            field=models.BooleanField(default=False, verbose_name='Monitorować SSL?'),
+            model_name="monitor",
+            name="ssl_monitor",
+            field=models.BooleanField(default=False, verbose_name="Monitorować SSL?"),
         ),
     ]

@@ -6,21 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('monitor', '0010_alter_emailvalues_options_alter_emailvalues_email'),
+        ("monitor", "0010_alter_emailvalues_options_alter_emailvalues_email"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='monitor',
-            name='domain_or_ip',
+            model_name="monitor",
+            name="domain_or_ip",
         ),
         migrations.RemoveField(
-            model_name='monitor',
-            name='url',
+            model_name="monitor",
+            name="url",
         ),
         migrations.AddField(
-            model_name='monitor',
-            name='value_to_check',
-            field=models.CharField(max_length=100, null=True, verbose_name='URL lub IP lub domena'),
+            model_name="monitor",
+            name="value_to_check",
+            field=models.CharField(
+                max_length=100, null=True, verbose_name="URL lub IP lub domena"
+            ),
         ),
     ]

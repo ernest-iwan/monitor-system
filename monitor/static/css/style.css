@@ -153,8 +153,9 @@ p.title{
 }
 
 .service-info{
-    width: 650px;
+    width: 750px;
 }
+
 canvas{
     margin: 20px 0;
 }
@@ -192,7 +193,6 @@ hr {
 }
 
 .info-card{
-    width: 90%;
     padding: 20px;
     margin: 15px 0;
     background: rgba(255, 255, 255, 0.2);

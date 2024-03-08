@@ -42,5 +42,4 @@ urllib3==2.2.1
 vine==5.1.0
 wcwidth==0.2.13
 whois==1.20240129.2
-
 ipychart~=0.4.1

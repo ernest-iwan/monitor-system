@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('monitor', '0016_remove_log_cert_alter_log_days_to_domain_exp_and_more'),
+        ("monitor", "0016_remove_log_cert_alter_log_days_to_domain_exp_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='log',
-            name='status_code',
-            field=models.IntegerField(null=True, verbose_name='Numer Statusu'),
+            model_name="log",
+            name="status_code",
+            field=models.IntegerField(null=True, verbose_name="Numer Statusu"),
         ),
     ]

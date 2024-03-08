@@ -8,25 +8,35 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Logs',
+            name="Logs",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('request_date', models.DateTimeField(default=django.utils.timezone.now)),
-                ('domain', models.TextField()),
-                ('ping', models.IntegerField()),
-                ('response_time', models.IntegerField()),
-                ('cert', models.TextField()),
-                ('status_code', models.IntegerField()),
-                ('status', models.CharField(max_length=50)),
-                ('cert_from', models.DateTimeField()),
-                ('cert_to', models.DateTimeField()),
-                ('domain_exp', models.DateTimeField()),
-                ('days_to_domain_exp', models.IntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "request_date",
+                    models.DateTimeField(default=django.utils.timezone.now),
+                ),
+                ("domain", models.TextField()),
+                ("ping", models.IntegerField()),
+                ("response_time", models.IntegerField()),
+                ("cert", models.TextField()),
+                ("status_code", models.IntegerField()),
+                ("status", models.CharField(max_length=50)),
+                ("cert_from", models.DateTimeField()),
+                ("cert_to", models.DateTimeField()),
+                ("domain_exp", models.DateTimeField()),
+                ("days_to_domain_exp", models.IntegerField()),
             ],
         ),
     ]

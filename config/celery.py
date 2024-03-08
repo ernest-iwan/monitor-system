@@ -1,8 +1,10 @@
 from __future__ import absolute_import, unicode_literals
+
 import os
 import urllib.request
 from datetime import timezone
 from urllib.error import HTTPError
+
 import django
 import requests
 import whois

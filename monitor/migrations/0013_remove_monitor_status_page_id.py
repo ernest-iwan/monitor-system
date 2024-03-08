@@ -6,8 +6,10 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('monitor', '0012_monitor_status_page_id_alter_monitor_value_to_check_and_more'),
+        (
+            "monitor",
+            "0012_monitor_status_page_id_alter_monitor_value_to_check_and_more",
+        ),
     ]
 
-    operations = [
-    ]
+    operations = []

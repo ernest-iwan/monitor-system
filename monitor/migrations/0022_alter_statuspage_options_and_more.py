@@ -6,17 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('monitor', '0021_statuspage_monitors'),
+        ("monitor", "0021_statuspage_monitors"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='statuspage',
-            options={'ordering': ['-name'], 'verbose_name': 'Status strony', 'verbose_name_plural': 'Statusy stron'},
+            name="statuspage",
+            options={
+                "ordering": ["-name"],
+                "verbose_name": "Status strony",
+                "verbose_name_plural": "Statusy stron",
+            },
         ),
         migrations.AlterField(
-            model_name='monitor',
-            name='request_timeout',
-            field=models.FloatField(verbose_name='Czas oczekiwania na żądanie'),
+            model_name="monitor",
+            name="request_timeout",
+            field=models.FloatField(verbose_name="Czas oczekiwania na żądanie"),
         ),
     ]

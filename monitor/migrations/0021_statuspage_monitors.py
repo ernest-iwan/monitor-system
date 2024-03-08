@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('monitor', '0020_log_days_to_ssl_exp_monitor_days_before_exp_and_more'),
+        ("monitor", "0020_log_days_to_ssl_exp_monitor_days_before_exp_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='statuspage',
-            name='monitors',
-            field=models.ManyToManyField(to='monitor.monitor', verbose_name='Monitory'),
+            model_name="statuspage",
+            name="monitors",
+            field=models.ManyToManyField(to="monitor.monitor", verbose_name="Monitory"),
         ),
     ]

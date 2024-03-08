@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Email, EmailValues, Monitor, Log, StatusPage
+from .models import Email, EmailValues, Log, Monitor, StatusPage
 
 
 class EmailValuesInline(admin.TabularInline):
@@ -13,16 +13,38 @@ class MonitorAdmin(admin.ModelAdmin):
     list_display = ("name", "monitor_type", "add_date", "status", "is_active")
     list_filter = ("monitor_type", "add_date", "is_active")
     search_fields = ("name",)
-    fieldsets = [('Dane', {
-        'fields': ['name', 'monitor_type', 'request_timeout', 'interval', 'status', 'is_active', 'value_to_check',
-                   'ssl_monitor', 'days_before_exp']}), ]
+    fieldsets = [
+        (
+            "Dane",
+            {
+                "fields": [
+                    "name",
+                    "monitor_type",
+                    "request_timeout",
+                    "interval",
+                    "status",
+                    "is_active",
+                    "value_to_check",
+                    "ssl_monitor",
+                    "days_before_exp",
+                ]
+            },
+        ),
+    ]
     inlines = [EmailValuesInline]
 
 
 @admin.register(Log)
 class LogAdmin(admin.ModelAdmin):
     readonly_fields = [field.name for field in Log._meta.get_fields()]
-    list_display = ("request_date", "monitor", "ping", "response_time", "status", "days_to_ssl_exp")
+    list_display = (
+        "request_date",
+        "monitor",
+        "ping",
+        "response_time",
+        "status",
+        "days_to_ssl_exp",
+    )
     list_filter = ("request_date", "monitor")
     search_fields = ("monitor_id", "status")
 
@@ -40,6 +62,7 @@ class StatusPageAdmin(admin.ModelAdmin):
     list_filter = ("name", "slug")
     search_fields = ("name", "slug")
     # inlines = [Monitor]
+
 
 # class MenuAdmin(admin.ModelAdmin):
 #     # ...

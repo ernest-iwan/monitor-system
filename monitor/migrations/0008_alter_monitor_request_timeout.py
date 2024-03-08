@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('monitor', '0007_alter_log_options_alter_monitor_options_and_more'),
+        ("monitor", "0007_alter_log_options_alter_monitor_options_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='monitor',
-            name='request_timeout',
-            field=models.FloatField(verbose_name='Czas oczekiwania na rządanie'),
+            model_name="monitor",
+            name="request_timeout",
+            field=models.FloatField(verbose_name="Czas oczekiwania na rządanie"),
         ),
     ]

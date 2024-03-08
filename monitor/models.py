@@ -1,15 +1,15 @@
-from django.db import models
-from django.utils.translation import gettext as _
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
-from datetime import timedelta, datetime
-from collections import OrderedDict
 import json
-import tzlocal
-from django.utils import timezone
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
+from datetime import datetime, timedelta
 from operator import itemgetter
+
+import tzlocal
+from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+from django.utils import timezone
+from django.utils.translation import gettext as _
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 
 class Email(models.Model):
@@ -27,7 +27,7 @@ class Email(models.Model):
 class Monitor(models.Model):
     TYPE_HTTP = "http_request"
     TYPE_PING = "ping"
-    TYPE_CRONE = "cron job"
+    TYPE_CRONE = "cron_job"
 
     TYPES = (
         (TYPE_HTTP, _("Zapytanie HTTP")),
@@ -115,11 +115,11 @@ class Monitor(models.Model):
         average_ping_data = {}
         for time_interval, data in sorted(interval_data.items(), key=itemgetter(0)):
             if data["count"] > 0:
-                average_ping_data[time_interval.strftime("%H:%M")] = round(
-                    data["sum_ping"] / data["count"]
-                )
+                key = time_interval.strftime("%d-%H:%M")
+                average_ping_data[key] = round(data["sum_ping"] / data["count"])
             else:
-                average_ping_data[time_interval.strftime("%H:%M")] = None
+                key = time_interval.strftime("%d-%H:%M")
+                average_ping_data[key] = None
 
         return average_ping_data
 
@@ -143,11 +143,11 @@ class Monitor(models.Model):
         average_response_data = {}
         for time_interval, data in sorted(interval_data.items(), key=itemgetter(0)):
             if data["count"] > 0:
-                average_response_data[time_interval.strftime("%H:%M")] = round(
-                    data["sum_response"] / data["count"]
-                )
+                key = time_interval.strftime("%d-%H:%M")
+                average_response_data[key] = round(data["sum_response"] / data["count"])
             else:
-                average_response_data[time_interval.strftime("%H:%M")] = None
+                key = time_interval.strftime("%d-%H:%M")
+                average_response_data[key] = None
 
         return average_response_data
 
