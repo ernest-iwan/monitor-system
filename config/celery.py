@@ -1,12 +1,14 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
+import time
 import urllib.request
 from datetime import timezone
 from urllib.error import HTTPError
 
 import django
 import requests
+import tzlocal
 import whois
 from celery import Celery
 from django.conf import settings
@@ -104,6 +106,41 @@ def collect_data_ping(url, timeout, monitor_id):
 
     data["response_time"] = 0
     # Create log entry
+    create_log_entry(monitor, data)
+
+
+@app.task
+def collect_data_crone(timeout, monitor_id):
+    monitor = Monitor.objects.get(id=monitor_id)
+
+    time.sleep(timeout)
+
+    start_time = datetime.now(time_zone) - timedelta(seconds=timeout)
+    end_time = datetime.now(time_zone)
+    api_requests = ApiRequest.objects.filter(
+        monitor=monitor, request_date__range=(start_time, end_time)
+    )
+
+    if api_requests.exists():
+        api_request = api_requests.first()
+        response_time = api_request.request_date.astimezone(time_zone) - start_time
+
+        data = {
+            "status": "Successful responses",
+            "status_code": 200,
+            "response_time": response_time.total_seconds() * 1000,
+        }
+        if monitor.status == "offline":
+            notify_status_change(monitor, "online")
+    else:
+        data = {
+            "status": f"No ApiRequest within the specified interval",
+            "status_code": 404,
+            "response_time": 0,
+        }
+        if monitor.status == "online":
+            notify_status_change(monitor, "offline")
+
     create_log_entry(monitor, data)
 
 
@@ -222,6 +259,13 @@ def create_log_entry(monitor, data):
             domain_exp=data["domain_exp"],
             days_to_domain_exp=data["days_to_domain_exp"],
             days_to_ssl_exp=data["days_to_ssl_exp"],
+        )
+    elif monitor.monitor_type == "cron_job":
+        log = Log(
+            monitor=monitor,
+            ping=0,
+            response_time=data["response_time"],
+            status=data["status"],
         )
     else:
         log = Log(

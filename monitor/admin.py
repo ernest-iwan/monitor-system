@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Email, EmailValues, Log, Monitor, StatusPage
+from .models import ApiRequest, Email, EmailValues, Log, Monitor, StatusPage
 
 
 class EmailValuesInline(admin.TabularInline):
@@ -62,6 +62,14 @@ class StatusPageAdmin(admin.ModelAdmin):
     list_filter = ("name", "slug")
     search_fields = ("name", "slug")
     # inlines = [Monitor]
+
+
+@admin.register(ApiRequest)
+class ApiRequestAdmin(admin.ModelAdmin):
+    readonly_fields = [field.name for field in ApiRequest._meta.get_fields()]
+    list_display = ("request_date", "monitor")
+    list_filter = ("request_date", "monitor")
+    search_fields = ("monitor",)
 
 
 # class MenuAdmin(admin.ModelAdmin):

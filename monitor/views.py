@@ -1,7 +1,8 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.defaulttags import register
 
-from .models import Monitor, StatusPage
+from .models import ApiRequest, Monitor, StatusPage
 
 
 @register.filter
@@ -33,3 +34,9 @@ def monitor(request, monitor_id):
 
     context = {"monitor": monitor}
     return render(request, "monitor.html", context)
+
+
+def crone(request, monitor_id):
+    monitor = Monitor.objects.get(id=monitor_id)
+    ApiRequest.objects.create(monitor=monitor)
+    return HttpResponse("")

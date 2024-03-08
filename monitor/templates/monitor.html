@@ -31,14 +31,15 @@
                 </div>
             </div>
           </div>
-
-          <div class="services">
-            <div class="services-wrapper service-info">
-                <p class="title">Ping z ostatnich 24 godzin</p>
-                <canvas id="pingChart" style="width:100%;max-width:750px"></canvas>
-            </div>
-          </div>
-            {% if monitor.monitor_type == "http_request" %}
+            {% if monitor.monitor_type != "cron_job" %}
+              <div class="services">
+                <div class="services-wrapper service-info">
+                    <p class="title">Ping z ostatnich 24 godzin</p>
+                    <canvas id="pingChart" style="width:100%;max-width:750px"></canvas>
+                </div>
+              </div>
+            {% endif %}
+            {% if monitor.monitor_type != "ping" %}
               <div class="services">
                 <div class="services-wrapper service-info">
                     <p class="title">Czas odpowiedzi z ostatnich 24 godzin</p>

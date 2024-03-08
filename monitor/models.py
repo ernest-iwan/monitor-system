@@ -55,7 +55,9 @@ class Monitor(models.Model):
     )
     is_active = models.BooleanField(_("Czy aktywny?"))
     emails = models.ManyToManyField(Email, verbose_name=_("Emaile"))
-    value_to_check = models.CharField(_("URL lub IP"), max_length=100, null=True)
+    value_to_check = models.CharField(
+        _("URL lub IP"), max_length=100, null=True, blank=True
+    )
     ssl_monitor = models.BooleanField(_("Monitorować SSL?"), default=False)
     days_before_exp = models.IntegerField(
         _("Ile dni przed poinformować?"), null=True, blank=True
@@ -244,8 +246,23 @@ class StatusPage(models.Model):
         return f"{self.name} - {self.slug}"
 
 
+class ApiRequest(models.Model):
+    request_date = models.DateTimeField(_("Data zapytania"), auto_now_add=True)
+    monitor = models.ForeignKey(
+        Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ["-request_date"]
+        verbose_name = "Odpowiedź API"
+        verbose_name_plural = "Odpowiedzi API"
+
+    def __str__(self):
+        return f"{self.request_date} - {self.monitor}"
+
+
 @receiver(post_delete, sender=Monitor)
-def notification_handler(sender, instance, **kwargs):
+def notification_handler_delete(sender, instance, **kwargs):
     task = PeriodicTask.objects.get(
         name=f"monitor {instance.id}",
     )
@@ -257,7 +274,7 @@ def notification_handler(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Monitor)
-def notification_handler(sender, instance, created, **kwargs):
+def notification_handler_save(sender, instance, created, **kwargs):
     if created:
         interval, created = IntervalSchedule.objects.get_or_create(
             every=instance.interval,
@@ -306,10 +323,25 @@ def notification_handler(sender, instance, created, **kwargs):
                 ),
             )
 
-    if not created:
+        elif instance.monitor_type == "crone_job":
+            task = PeriodicTask.objects.get_or_create(
+                interval=interval,
+                name=f"monitor {instance.id}",
+                task="config.celery.collect_data_crone",
+                enabled=instance.is_active,
+                args=json.dumps([instance.request_timeout, instance.id]),
+            )
+
+    elif not created:
+        interval = IntervalSchedule.objects.get_or_create(
+            every=instance.interval,
+            period=IntervalSchedule.SECONDS,
+        )
+
         task = PeriodicTask.objects.get(
             name=f"monitor {instance.id}",
         )
+        task.interval = interval[0]
         task.args = json.dumps(
             [instance.value_to_check, instance.request_timeout, instance.id]
         )
@@ -317,20 +349,24 @@ def notification_handler(sender, instance, created, **kwargs):
 
         if instance.monitor_type == "http_request":
             task.task = "config.celery.collect_data_url"
-            task2 = PeriodicTask.objects.get(
-                name=f"ssl monitor {instance.id}",
-            )
-            task2.args = json.dumps(
-                [
-                    instance.value_to_check,
-                    instance.request_timeout,
-                    instance.id,
-                    instance.days_before_exp,
-                ]
-            )
-            task2.enabled = instance.ssl_monitor
-            task2.save()
+            if instance.ssl_monitor:
+                task2 = PeriodicTask.objects.get(
+                    name=f"ssl monitor {instance.id}",
+                )
+                task2.args = json.dumps(
+                    [
+                        instance.value_to_check,
+                        instance.request_timeout,
+                        instance.id,
+                        instance.days_before_exp,
+                    ]
+                )
+                task2.enabled = instance.ssl_monitor
+                task2.save()
         elif instance.monitor_type == "ping":
             task.task = "config.celery.collect_data_ping"
+        elif instance.monitor_type == "crone_job":
+            task.task = "config.celery.collect_data_crone"
+            task.args = json.dumps([instance.request_timeout, instance.id])
 
         task.save()
