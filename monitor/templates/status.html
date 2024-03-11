@@ -26,12 +26,15 @@
                 <div class="service">
                   <a href="../../monitor/{{ element.id }}/">
                     <span class="status-icon {% if element.status == 'online' %}online{% else %}offline{% endif %}"></span>
-                    {{ element.name }} ({{ element.value_to_check }})
+                    {{ element.name }}
+                  {% if element.value_to_check != None %}
+                    ({{ element.value_to_check }})
+                  {% endif %}
                   </a>
 
                   <div class="log-info">
                     {% for key, value in element.get_logs.items %}
-                      <div class="status-box {% if value == 100 %}positive{% elif value == -1 %}neutral{% elif value < 100 %}small-positive{% else %}negative{% endif %}">
+                      <div class="status-box {% if value == 100 %}positive{% elif value == -1 %}neutral{% elif value < 95 %}negative{% else %}small-positive{% endif %}">
                         <div class="info-box">
                           <p class="date">{{ key }}</p>
                           {% if value == -1 %}

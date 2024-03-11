@@ -5,7 +5,11 @@
     {% endblock %}
     {% block header %}
         <div class="title">
-          <h1>{{ monitor.name }} - ({{ monitor.value_to_check }})</h1>
+          <h1>{{ monitor.name }}
+            {% if monitor.value_to_check != None %}
+               - ({{ monitor.value_to_check }})
+            {% endif %}
+          </h1>
         </div>
     {% endblock %}
     {% block main %}
@@ -16,7 +20,7 @@
                 <div class="service">
                   <div class="log-info">
                     {% for key, value in monitor.get_logs.items %}
-                      <div class="status-box {% if value == 100 %}positive{% elif value == -1 %}neutral{% elif value < 100 %}small-positive{% else %}negative{% endif %}">
+                      <div class="status-box {% if value == 100 %}positive{% elif value == -1 %}neutral{% elif value < 95 %}negative{% else %}small-positive{% endif %}">
                         <div class="info-box">
                           <p class="date">{{ key }}</p>
                           {% if value == -1 %}

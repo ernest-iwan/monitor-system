@@ -110,7 +110,7 @@ def collect_data_ping(url, timeout, monitor_id):
 
 
 @app.task
-def collect_data_crone(timeout, monitor_id):
+def collect_data_crone(url, timeout, monitor_id):
     monitor = Monitor.objects.get(id=monitor_id)
 
     time.sleep(timeout)
