@@ -13,8 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="monitor",
             name="days_before_exp",
-            field=models.IntegerField(
-                blank=True, null=True, verbose_name="Ile dni przed poinformować?"
-            ),
+            field=models.IntegerField(blank=True, null=True, verbose_name="Ile dni przed poinformować?"),
         ),
     ]

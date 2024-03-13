@@ -54,11 +54,11 @@ repos:
 #        exclude: ^tests/
 #        args: [ --strict ]
 
-  - repo: https://github.com/Riverside-Healthcare/djLint
-    rev: v1.34.1
-    hooks:
-      - id: djlint-reformat-django
-      - id: djlint-django
+#  - repo: https://github.com/Riverside-Healthcare/djLint
+#    rev: v1.34.1
+#    hooks:
+#      - id: djlint-reformat-django
+#      - id: djlint-django
 
 #  - repo: https://github.com/PyCQA/bandit
 #    rev: 1.7.8

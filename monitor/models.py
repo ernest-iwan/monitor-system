@@ -89,7 +89,7 @@ class Monitor(models.Model):
         sorted_data = OrderedDict(sorted(data.items()))
         return sorted_data
 
-    def get_average_ping_last_24_hours(self):
+    def average_ping_24_hours(self):
         local_tz = tzlocal.get_localzone()
 
         time_24_hours_ago = timezone.now() - timedelta(hours=24)
@@ -115,7 +115,7 @@ class Monitor(models.Model):
 
         return average_ping_data
 
-    def get_average_response_time_last_24_hours(self):
+    def average_response_time_24_hours(self):
         local_tz = tzlocal.get_localzone()
 
         time_24_hours_ago = timezone.now() - timedelta(hours=24)
@@ -141,7 +141,7 @@ class Monitor(models.Model):
 
         return average_response_data
 
-    def get_logs_with_different_status(self):
+    def get_logs_different_status(self):
         logs = Log.objects.filter(monitor=self).order_by("request_date")
 
         previous_status = None

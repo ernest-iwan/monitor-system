@@ -14,9 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="monitor",
             name="value_to_check",
-            field=models.CharField(
-                max_length=100, null=True, verbose_name="URL lub IP"
-            ),
+            field=models.CharField(max_length=100, null=True, verbose_name="URL lub IP"),
         ),
         migrations.AlterField(
             model_name="statuspage",

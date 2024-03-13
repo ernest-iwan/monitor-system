@@ -39,9 +39,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "request_date",
-                    models.DateTimeField(
-                        auto_now_add=True, verbose_name="Data zapytania"
-                    ),
+                    models.DateTimeField(auto_now_add=True, verbose_name="Data zapytania"),
                 ),
                 (
                     "monitor",

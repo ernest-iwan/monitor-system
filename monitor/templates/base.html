@@ -1,21 +1,23 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="pl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        {% block title %}{% endblock %}
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    </head>
-    <body>
-      <header>
-        {% block header %}
-        {% endblock %}
-      </header>
-      <main>
-        {% block main %}
-        {% endblock %}
-      </main>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% block title %}
+    {% endblock title %}
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  </head>
+  <body>
+    <header>
+      {% block header %}
+      {% endblock header %}
+    </header>
+    <main>
+      {% block main %}
+      {% endblock main %}
+    </main>
+  </body>
 </html>

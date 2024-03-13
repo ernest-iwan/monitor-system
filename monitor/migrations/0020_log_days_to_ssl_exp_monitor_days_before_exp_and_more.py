@@ -13,16 +13,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="log",
             name="days_to_ssl_exp",
-            field=models.IntegerField(
-                null=True, verbose_name="Dni do wygaśnięcia certyfikatu ssl"
-            ),
+            field=models.IntegerField(null=True, verbose_name="Dni do wygaśnięcia certyfikatu ssl"),
         ),
         migrations.AddField(
             model_name="monitor",
             name="days_before_exp",
-            field=models.IntegerField(
-                null=True, verbose_name="Ile dni przed poinformować?"
-            ),
+            field=models.IntegerField(null=True, verbose_name="Ile dni przed poinformować?"),
         ),
         migrations.AlterField(
             model_name="log",

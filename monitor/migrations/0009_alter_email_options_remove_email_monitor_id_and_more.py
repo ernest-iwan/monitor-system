@@ -22,9 +22,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="monitor",
             name="domain_or_ip",
-            field=models.CharField(
-                max_length=100, null=True, verbose_name="Domena lub IP"
-            ),
+            field=models.CharField(max_length=100, null=True, verbose_name="Domena lub IP"),
         ),
         migrations.AddField(
             model_name="monitor",
@@ -55,9 +53,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "email",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.PROTECT, to="monitor.email"
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to="monitor.email"),
                 ),
                 (
                     "monitor_id",

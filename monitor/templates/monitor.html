@@ -1,178 +1,194 @@
-{% extends 'base.html' %}
-    {% block title %}
-        <title>{{ monitor.name }}</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
-    {% endblock %}
-    {% block header %}
-        <div class="title">
-          <h1>{{ monitor.name }}
-            {% if monitor.value_to_check != None %}
-               - ({{ monitor.value_to_check }})
-            {% endif %}
-          </h1>
-        </div>
-    {% endblock %}
-    {% block main %}
-        <div class="wrapper">
-          <div class="services">
-            <div class="services-wrapper service-info">
-                <p class="title"><span class="status-icon {% if monitor.status == 'online' %}online{% else %}offline{% endif %}"></span> Status strony z ostatnich 30 dni</p>
-                <div class="service">
-                  <div class="log-info">
-                    {% for key, value in monitor.get_logs.items %}
-                      <div class="status-box {% if value == 100 %}positive{% elif value == -1 %}neutral{% elif value < 95 %}negative{% else %}small-positive{% endif %}">
-                        <div class="info-box">
-                          <p class="date">{{ key }}</p>
-                          {% if value == -1 %}
-                            <p class="value">Brak danych</p>
+{% extends "base.html" %}
+
+{% block title %}
+  <title>{{ monitor.name }}</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+{% endblock title %}
+{% block header %}
+  <div class="title">
+    <h1>
+      {{ monitor.name }}
+      {% if monitor.value_to_check != None %}- ({{ monitor.value_to_check }}){% endif %}
+    </h1>
+  </div>
+{% endblock header%}
+{% block main %}
+  <div class="wrapper">
+    <div class="services">
+      <div class="services-wrapper service-info">
+        <p class="title">
+          <span class="status-icon {% if monitor.status == 'online' %}online{% else %}offline{% endif %}"></span> Status strony z ostatnich 30 dni
+        </p>
+        <div class="service">
+          <div class="log-info">
+            {% for key, value in monitor.get_logs.items %}
+              <div class="status-box
+                          {% if value == 100 %}
+                            positive
+                          {% elif value == -1 %}
+                            neutral
+                          {% elif value < 95 %}
+                            negative
                           {% else %}
-                            <p class="value">{{ value }}%</p>
-                          {% endif %}
-                        </div>
-                      </div>
-                    {% endfor %}
-                  </div>
-                </div>
-            </div>
-          </div>
-            {% if monitor.monitor_type != "cron_job" %}
-              <div class="services">
-                <div class="services-wrapper service-info">
-                    <p class="title">Ping z ostatnich 24 godzin</p>
-                    <canvas id="pingChart" style="width:100%;max-width:750px"></canvas>
+                            small-positive
+                          {% endif %}">
+                <div class="info-box">
+                  <p class="date">{{ key }}</p>
+                  {% if value == -1 %}
+                    <p class="value">Brak danych</p>
+                  {% else %}
+                    <p class="value">{{ value }}%</p>
+                  {% endif %}
                 </div>
               </div>
-            {% endif %}
-            {% if monitor.monitor_type != "ping" %}
-              <div class="services">
-                <div class="services-wrapper service-info">
-                    <p class="title">Czas odpowiedzi z ostatnich 24 godzin</p>
-                    <canvas id="responseChart" style="width:100%;max-width:750px"></canvas>
-                </div>
-                </div>
-            {% endif %}
-
-          <div class="services">
-            <div class="services-wrapper service-info">
-                <p class="title">Ostatnie informacje</p>
-                {% for key, value in monitor.get_logs_with_different_status.items %}
-                    <div class="info-card">
-                        <p class="info-date">{{ key }}</p>
-                        <div class="status-values">
-                            {% for info in value %}
-                                {{ info|safe }}
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
+            {% endfor %}
           </div>
         </div>
+      </div>
+    </div>
+    {% if monitor.monitor_type != "cron_job" %}
+      <div class="services">
+        <div class="services-wrapper service-info">
+          <p class="title">Ping z ostatnich 24 godzin</p>
+          <canvas id="pingChart" style="width:100%;max-width:750px"></canvas>
+        </div>
+      </div>
+    {% endif %}
+    {% if monitor.monitor_type != "ping" %}
+      <div class="services">
+        <div class="services-wrapper service-info">
+          <p class="title">Czas odpowiedzi z ostatnich 24 godzin</p>
+          <canvas id="responseChart" style="width:100%;max-width:750px"></canvas>
+        </div>
+      </div>
+    {% endif %}
+    <div class="services">
+      <div class="services-wrapper service-info">
+        <p class="title">Ostatnie informacje</p>
+        {% for key, value in monitor.get_logs_different_status.items %}
+          <div class="info-card">
+            <p class="info-date">{{ key }}</p>
+            <div class="status-values">
+              {% for info in value %}{{ info|safe }}{% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <script>
+    //Ping Chart
 
-        <script>
-            {# Ping Chart #}
-            let x_values = [];
-            let data = [];
+    let x_values = [];
+    let data = [];
 
-            {% for key, value in monitor.get_average_ping_last_24_hours.items %}
-                x_values.push("{{ key }}")
-                data.push({{ value }})
-            {% endfor %}
+    {% for key, value in monitor.average_ping_24_hours.items %}
+    x_values.push("{{ key }}")
+    data.push({{ value }})
+    {% endfor %}
 
-            new Chart("pingChart", {
-              type: "line",
-              data: {
-                labels: x_values,
-                datasets: [{
-                  data: data,
-                  borderColor: '#289d25',
-                  backgroundColor: '#9ee89b',
-                  fill: true
-                },]
-              },
-              options: {
-                layout: {
-                    padding: 30
-                },
-                legend: {display: false},
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            suggestedMax: 20,
-                        }
-                    }],
-                    xAxis: {
-                        type: 'time',
-                    }
-                },
-                tooltips: {
-                    displayColors: false,
-                    enabled: true,
-                    titleFont: { weight: 'bold' },
-                    padding: 10,
-                    yAlign: 'bottom',
-                    xAlign: "center",
-                    callbacks: {
-                        label: function(tooltipItems) {
-                            return tooltipItems.yLabel + ' ms';
-                        }
-                    }
-                },
-              }
-            });
+    new Chart("pingChart", {
+      type: "line",
+      data: {
+        labels: x_values,
+        datasets: [{
+          data: data,
+          borderColor: '#289d25',
+          backgroundColor: '#9ee89b',
+          fill: true
+        }, ]
+      },
+      options: {
+        layout: {
+          padding: 30
+        },
+        legend: {
+          display: false
+        },
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+              suggestedMax: 20,
+            }
+          }],
+          xAxis: {
+            type: 'time',
+          }
+        },
+        tooltips: {
+          displayColors: false,
+          enabled: true,
+          titleFont: {
+            weight: 'bold'
+          },
+          padding: 10,
+          yAlign: 'bottom',
+          xAlign: "center",
+          callbacks: {
+            label: function(tooltipItems) {
+              return tooltipItems.yLabel + ' ms';
+            }
+          }
+        },
+      }
+    });
 
 
-            {# Response Chart#}
-            x_values = [];
-            data = [];
+    // Response Chart
+    x_values = [];
+    data = [];
 
-            {% for key, value in monitor.get_average_response_time_last_24_hours.items %}
-                x_values.push("{{ key }}")
-                data.push({{ value }})
-            {% endfor %}
+    {% for key, value in monitor.average_response_time_24_hours.items %}
+    x_values.push("{{ key }}")
+    data.push({{ value }})
+    {% endfor %}
 
-            new Chart("responseChart", {
-              type: "line",
-              data: {
-                labels: x_values,
-                datasets: [{
-                  data: data,
-                  borderColor: '#2c7be0',
-                  backgroundColor: '#97b9e7',
-                  fill: true
-                },]
-              },
-              options: {
-                layout: {
-                    padding: 30
-                },
-                legend: {display: false},
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            suggestedMax: 200,
-                        }
-                    }],
-                    xAxis: {
-                        type: 'time',
-                    }
-                },
-                tooltips: {
-                    displayColors: false,
-                    enabled: true,
-                    titleFont: { weight: 'bold' },
-                    padding: 10,
-                    yAlign: 'bottom',
-                    xAlign: "center",
-                    callbacks: {
-                        label: function(tooltipItems) {
-                            return tooltipItems.yLabel + ' ms';
-                        }
-                    }
-                },
-              }
-            });
-        </script>
-    {% endblock %}
+    new Chart("responseChart", {
+      type: "line",
+      data: {
+        labels: x_values,
+        datasets: [{
+          data: data,
+          borderColor: '#2c7be0',
+          backgroundColor: '#97b9e7',
+          fill: true
+        }, ]
+      },
+      options: {
+        layout: {
+          padding: 30
+        },
+        legend: {
+          display: false
+        },
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+              suggestedMax: 200,
+            }
+          }],
+          xAxis: {
+            type: 'time',
+          }
+        },
+        tooltips: {
+          displayColors: false,
+          enabled: true,
+          titleFont: {
+            weight: 'bold'
+          },
+          padding: 10,
+          yAlign: 'bottom',
+          xAlign: "center",
+          callbacks: {
+            label: function(tooltipItems) {
+              return tooltipItems.yLabel + ' ms';
+            }
+          }
+        },
+      }
+    });
+  </script>
+{% endblock main%}

@@ -41,9 +41,7 @@ class Migration(migrations.Migration):
                 ("interval", models.FloatField(verbose_name="Interwał")),
                 (
                     "add_date",
-                    models.DateTimeField(
-                        auto_now_add=True, verbose_name="Data dodania"
-                    ),
+                    models.DateTimeField(auto_now_add=True, verbose_name="Data dodania"),
                 ),
                 (
                     "status",
@@ -103,9 +101,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="log",
             name="request_date",
-            field=models.DateTimeField(
-                auto_now_add=True, verbose_name="Data zapytania"
-            ),
+            field=models.DateTimeField(auto_now_add=True, verbose_name="Data zapytania"),
         ),
         migrations.AlterField(
             model_name="log",

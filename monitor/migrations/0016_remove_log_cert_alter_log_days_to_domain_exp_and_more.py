@@ -17,9 +17,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="log",
             name="days_to_domain_exp",
-            field=models.IntegerField(
-                null=True, verbose_name="Dni do wygaśnięcia domeny"
-            ),
+            field=models.IntegerField(null=True, verbose_name="Dni do wygaśnięcia domeny"),
         ),
         migrations.AlterField(
             model_name="log",
