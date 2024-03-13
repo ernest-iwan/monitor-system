@@ -25,9 +25,6 @@ jobs:
       - name: Build the Stack
         run:  docker-compose build
 
-      - name: Run DB Migrations
-        run:  docker-compose run --rm web ./manage.py migrate
-
       - name: Run Django Tests
         run:  docker-compose run web pytest
 
