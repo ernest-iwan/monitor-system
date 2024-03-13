@@ -44,24 +44,16 @@ class Monitor(models.Model):
     )
 
     name = models.CharField("Nazwa", max_length=100)
-    monitor_type = models.CharField(
-        _("Typ monitorowania"), max_length=15, choices=TYPES, default=TYPE_HTTP
-    )
+    monitor_type = models.CharField(_("Typ monitorowania"), max_length=15, choices=TYPES, default=TYPE_HTTP)
     request_timeout = models.FloatField(_("Czas oczekiwania na żądanie"))
     interval = models.FloatField(_("Interwał"))
     add_date = models.DateTimeField(_("Data dodania"), auto_now_add=True)
-    status = models.CharField(
-        _("Status"), max_length=15, choices=STATUSES, default=STATUS_ONLINE
-    )
+    status = models.CharField(_("Status"), max_length=15, choices=STATUSES, default=STATUS_ONLINE)
     is_active = models.BooleanField(_("Czy aktywny?"))
     emails = models.ManyToManyField(Email, verbose_name=_("Emaile"))
-    value_to_check = models.CharField(
-        _("URL lub IP"), max_length=100, null=True, blank=True
-    )
+    value_to_check = models.CharField(_("URL lub IP"), max_length=100, null=True, blank=True)
     ssl_monitor = models.BooleanField(_("Monitorować SSL?"), default=False)
-    days_before_exp = models.IntegerField(
-        _("Ile dni przed poinformować?"), null=True, blank=True
-    )
+    days_before_exp = models.IntegerField(_("Ile dni przed poinformować?"), null=True, blank=True)
 
     class Meta:
         ordering = ["add_date"]
@@ -107,9 +99,7 @@ class Monitor(models.Model):
         logs = Log.objects.filter(monitor=self, request_date__gte=time_24_hours_ago)
 
         for log in logs:
-            time_interval = log.request_date.astimezone(local_tz).replace(
-                second=0, microsecond=0
-            )
+            time_interval = log.request_date.astimezone(local_tz).replace(second=0, microsecond=0)
             time_interval -= timedelta(minutes=time_interval.minute % 30)
             interval_data[time_interval]["sum_ping"] += log.ping
             interval_data[time_interval]["count"] += 1
@@ -135,9 +125,7 @@ class Monitor(models.Model):
         logs = Log.objects.filter(monitor=self, request_date__gte=time_24_hours_ago)
 
         for log in logs:
-            time_interval = log.request_date.astimezone(local_tz).replace(
-                second=0, microsecond=0
-            )
+            time_interval = log.request_date.astimezone(local_tz).replace(second=0, microsecond=0)
             time_interval -= timedelta(minutes=time_interval.minute % 30)
             interval_data[time_interval]["sum_response"] += log.response_time
             interval_data[time_interval]["count"] += 1
@@ -169,13 +157,9 @@ class Monitor(models.Model):
                 timestamp = local_date.strftime("%H:%M:%S")
 
                 if log.status == "Successful responses":
-                    message = (
-                        f"<p style='color: #3bd671;'>{timestamp} - {log.status}</p>"
-                    )
+                    message = f"<p style='color: #3bd671;'>{timestamp} - {log.status}</p>"
                 else:
-                    message = (
-                        f"<p style='color: #FF5733;'>{timestamp} - {log.status}</p>"
-                    )
+                    message = f"<p style='color: #FF5733;'>{timestamp} - {log.status}</p>"
 
                 different_status_logs[date_key].append(message)
 
@@ -193,9 +177,7 @@ class Monitor(models.Model):
 
 
 class EmailValues(models.Model):
-    monitor = models.ForeignKey(
-        Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE
-    )
+    monitor = models.ForeignKey(Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE)
     email = models.ForeignKey(Email, verbose_name=_("Email"), on_delete=models.PROTECT)
 
     class Meta:
@@ -208,9 +190,7 @@ class EmailValues(models.Model):
 
 class Log(models.Model):
     request_date = models.DateTimeField(_("Data zapytania"), auto_now_add=True)
-    monitor = models.ForeignKey(
-        Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE
-    )
+    monitor = models.ForeignKey(Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE)
     ping = models.IntegerField(_("Ping"), null=True)
     response_time = models.IntegerField(_("Czas odpowiedzi"), null=True)
     status_code = models.IntegerField(_("Numer Statusu"), null=True)
@@ -219,9 +199,7 @@ class Log(models.Model):
     cert_to = models.DateTimeField(_("Certyfikat ważny do"), null=True)
     domain_exp = models.DateTimeField(_("Domena wygasa"), null=True)
     days_to_domain_exp = models.IntegerField(_("Dni do wygaśnięcia domeny"), null=True)
-    days_to_ssl_exp = models.IntegerField(
-        _("Dni do wygaśnięcia certyfikatu ssl"), null=True
-    )
+    days_to_ssl_exp = models.IntegerField(_("Dni do wygaśnięcia certyfikatu ssl"), null=True)
 
     class Meta:
         ordering = ["-request_date"]
@@ -248,9 +226,7 @@ class StatusPage(models.Model):
 
 class ApiRequest(models.Model):
     request_date = models.DateTimeField(_("Data zapytania"), auto_now_add=True)
-    monitor = models.ForeignKey(
-        Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE
-    )
+    monitor = models.ForeignKey(Monitor, verbose_name=_("Monitor"), on_delete=models.CASCADE)
 
     class Meta:
         ordering = ["-request_date"]
@@ -262,7 +238,7 @@ class ApiRequest(models.Model):
 
 
 @receiver(post_delete, sender=Monitor)
-def notification_handler_delete(sender, instance, **kwargs):
+def delete(sender, instance, **kwargs):
     task = PeriodicTask.objects.get(
         name=f"monitor {instance.id}",
     )
@@ -274,7 +250,7 @@ def notification_handler_delete(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Monitor)
-def notification_handler_save(sender, instance, created, **kwargs):
+def save(sender, instance, created, **kwargs):
     if created:
         interval, created = IntervalSchedule.objects.get_or_create(
             every=instance.interval,
@@ -287,9 +263,7 @@ def notification_handler_save(sender, instance, created, **kwargs):
                 name=f"monitor {instance.id}",
                 task="config.celery.collect_data_url",
                 enabled=instance.is_active,
-                args=json.dumps(
-                    [instance.value_to_check, instance.request_timeout, instance.id]
-                ),
+                args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
 
             if instance.ssl_monitor:
@@ -318,9 +292,7 @@ def notification_handler_save(sender, instance, created, **kwargs):
                 name=f"monitor {instance.id}",
                 task="config.celery.collect_data_ping",
                 enabled=instance.is_active,
-                args=json.dumps(
-                    [instance.value_to_check, instance.request_timeout, instance.id]
-                ),
+                args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
 
         elif instance.monitor_type == "crone_job":
@@ -342,9 +314,7 @@ def notification_handler_save(sender, instance, created, **kwargs):
             name=f"monitor {instance.id}",
         )
         task.interval = interval[0]
-        task.args = json.dumps(
-            [instance.value_to_check, instance.request_timeout, instance.id]
-        )
+        task.args = json.dumps([instance.value_to_check, instance.request_timeout, instance.id])
         task.enabled = instance.is_active
 
         if instance.monitor_type == "http_request":
