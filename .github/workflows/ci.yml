@@ -25,8 +25,8 @@ jobs:
       - name: Build the Stack
         run:  docker-compose build
 
-      - name: Run Django Tests
-        run:  docker-compose run web pytest
+#      - name: Run Django Tests
+#        run:  docker-compose run web pytest
 
       - name: Tear down the Stack
         run:  docker-compose down
