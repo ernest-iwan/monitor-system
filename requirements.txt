@@ -10,7 +10,7 @@ click-didyoumean==0.3.0
 click-plugins==1.1.1
 click-repl==0.3.0
 cron-descriptor==1.4.3
-Django==5.0.3
+Django==4.2.11
 django-celery-beat==2.5.0
 django-celery-results==2.5.1
 django-cron==0.6.0
@@ -23,7 +23,7 @@ future==1.0.0
 futures==3.0.5
 idna==3.6
 kombu==5.3.5
-ping3==4.0.5
+ping3==4.0.4
 prompt-toolkit==3.0.43
 python-crontab==3.0.0
 python-dateutil==2.9.0
@@ -40,5 +40,5 @@ tzlocal==5.2
 urllib3==2.2.1
 vine==5.1.0
 wcwidth==0.2.13
-whois==1.20240129.2
+whois==0.9.27
 ipychart~=0.4.1
