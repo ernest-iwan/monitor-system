@@ -1,8 +1,7 @@
-import datetime
 import os
 import time
 import urllib.request
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.error import HTTPError
 
 import django
@@ -14,10 +13,10 @@ from django.conf import settings
 from django.core.mail import send_mail
 from ping3 import ping
 
-from monitor.models import ApiRequest, EmailValues, Log, Monitor
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
+
+from monitor.models import ApiRequest, EmailValues, Log, Monitor
 
 app = Celery("config")
 app.config_from_object(settings, namespace="CELERY")
