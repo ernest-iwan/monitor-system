@@ -26,3 +26,5 @@ services:
       - .:/code
     depends_on:
       - redis
+
+# sudo docker compose up --build
