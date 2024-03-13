@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    environment:
+      MYENV: EXAMPLE
+    volumes:
+      - .:/code
+  web_migrate:
+    extends:
+      service: web
+    command: python manage.py migrate
+             python manage.py migrate django_celery_results
+  web_run:
+    extends:
+      service: web
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+  redis:
+    image: redis:alpine
+  celery-beat:
+    build: .
+    command: celery -A config worker --beat --scheduler django
+    volumes:
+      - .:/code
+    depends_on:
+      - redis

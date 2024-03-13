@@ -1,16 +1,88 @@
+exclude: '^migrations/'
+default_stages: [commit]
+
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-yaml
-    -   id: check-added-large-files
--   repo: https://github.com/psf/black
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: debug-statements
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [ '--fix=lf' ]
+
+
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: '1.16.0'
+    hooks:
+      - id: django-upgrade
+        args: ['--target-version', '4.2']
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.1
+    hooks:
+      - id: pyupgrade
+        args: [--py311-plus]
+
+  - repo: https://github.com/psf/black
     rev: 24.2.0
     hooks:
-    -   id: black
--   repo: https://github.com/pycqa/isort
+      - id: black
+
+  - repo: https://github.com/PyCQA/isort
     rev: 5.13.2
     hooks:
-    -   id: isort
+      - id: isort
+
+  -   repo: https://github.com/carstencodes/flake518
+      rev: 'v1.6.0'  # pick a git hash / tag to point to
+      hooks:
+      -   id: flake518
+
+#  - repo: https://github.com/pre-commit/mirrors-mypy
+#    rev: v1.7.1
+#    hooks:
+#      - id: mypy
+#        exclude: ^tests/
+#        args: [ --strict ]
+
+  - repo: https://github.com/Riverside-Healthcare/djLint
+    rev: v1.34.1
+    hooks:
+      - id: djlint-reformat-django
+      - id: djlint-django
+
+#  - repo: https://github.com/PyCQA/bandit
+#    rev: 1.7.8
+#    hooks:
+#      - id: bandit
+#        name: bandit
+#        description: 'Bandit is a tool for finding common security issues in Python code'
+#        entry: bandit
+#        language: python
+#        language_version: python3
+#        types: [ python ]
+#        require_serial: true
+#        args: [ "-c", "pyproject.toml" ]
+#        additional_dependencies: ["bandit[toml]"]
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.3
+    hooks:
+      - id: python-safety-dependencies-check
+        files: requirements
+#        args: [ "--ignore=39153,39652" ]
+
+# sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
+ci:
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

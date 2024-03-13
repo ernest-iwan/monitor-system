@@ -1,9 +1,8 @@
-from __future__ import absolute_import, unicode_literals
-
+import datetime
 import os
 import time
 import urllib.request
-from datetime import timezone
+from datetime import timedelta, timezone
 from urllib.error import HTTPError
 
 import django
@@ -15,10 +14,10 @@ from django.conf import settings
 from django.core.mail import send_mail
 from ping3 import ping
 
+from monitor.models import ApiRequest, EmailValues, Log, Monitor
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
-
-from monitor.models import *
 
 app = Celery("config")
 app.config_from_object(settings, namespace="CELERY")
@@ -36,7 +35,8 @@ def collect_data_url(url, timeout, monitor_id):
 
     try:
         with requests.get(url, stream=True, timeout=timeout) as response:
-            data["domain"] = url.replace("http://", "").replace("https://", "")
+            data["domain"] = url.replace("https://", "")
+            data["domain"].replace("https://", "")
             data["ping"] = round(ping(data["domain"], unit="ms"))
             data["response_time"] = round(response.elapsed.total_seconds() * 1000)
             data["status_code"] = response.status_code
@@ -71,7 +71,7 @@ def collect_data_url(url, timeout, monitor_id):
             data["status_code"] = conn.getcode()
         except HTTPError as e:
             data["status_code"] = e.code
-        except:
+        except Exception:
             data["status_code"] = 404
         if monitor.status == "online":
             notify_status_change(monitor, "offline")
@@ -90,11 +90,11 @@ def collect_data_ping(url, timeout, monitor_id):
         data["status_code"] = conn.getcode()
     except HTTPError as e:
         data["status_code"] = e.code
-    except:
+    except Exception:
         data["status_code"] = 404
 
     try:
-        data["domain"] = url.replace("http://", "").replace("https://", "")
+        data["domain"] = url.replace("https://", "").replace("https://", "")
         data["ping"] = round(ping(data["domain"], unit="ms"))
         data["status"] = "Successful responses"
         if monitor.status == "offline":
@@ -117,9 +117,7 @@ def collect_data_crone(url, timeout, monitor_id):
 
     start_time = datetime.now(time_zone) - timedelta(seconds=timeout)
     end_time = datetime.now(time_zone)
-    api_requests = ApiRequest.objects.filter(
-        monitor=monitor, request_date__range=(start_time, end_time)
-    )
+    api_requests = ApiRequest.objects.filter(monitor=monitor, request_date__range=(start_time, end_time))
 
     if api_requests.exists():
         api_request = api_requests.first()
@@ -134,7 +132,7 @@ def collect_data_crone(url, timeout, monitor_id):
             notify_status_change(monitor, "online")
     else:
         data = {
-            "status": f"No ApiRequest within the specified interval",
+            "status": "No ApiRequest within the specified interval",
             "status_code": 404,
             "response_time": 0,
         }
@@ -151,48 +149,29 @@ def ssl_monitor(url, timeout, monitor_id, days_before_to_inform):
 
     try:
         with requests.get(url, stream=True, timeout=timeout) as response:
-            data["domain"] = url.replace("http://", "").replace("https://", "")
+            data["domain"] = url.replace("https://", "").replace("https://", "")
             w = whois.whois(data["domain"])
             certificate_info = response.raw.connection.sock.getpeercert()
-            tmp = datetime.strptime(
-                (certificate_info["notBefore"])[0:-4], "%b %d %H:%M:%S %Y"
-            )
-            data["cert_from"] = (
-                tmp.replace(tzinfo=timezone.utc)
-                .astimezone(time_zone)
-                .strftime(format_str)
-            )
-            tmp = datetime.strptime(
-                (certificate_info["notAfter"])[0:-4], "%b %d %H:%M:%S %Y"
-            )
-            data["cert_to"] = (
-                tmp.replace(tzinfo=timezone.utc)
-                .astimezone(time_zone)
-                .strftime(format_str)
-            )
+            tmp = datetime.strptime((certificate_info["notBefore"])[0:-4], "%b %d %H:%M:%S %Y")
+            data["cert_from"] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
+            tmp = datetime.strptime((certificate_info["notAfter"])[0:-4], "%b %d %H:%M:%S %Y")
+            data["cert_to"] = tmp.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
             data["ping"] = round(ping(data["domain"], unit="ms"))
 
-            if type(w.expiration_date) == list:
+            if type(w.expiration_date) is list:
                 w.expiration_date = w.expiration_date[0]
 
             data["domain_exp"] = (
-                w.expiration_date.replace(tzinfo=timezone.utc)
-                .astimezone(time_zone)
-                .strftime(format_str)
+                w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone).strftime(format_str)
             )
-            timedelta = (
-                w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone)
-                - now
-            )
+            timedelta = w.expiration_date.replace(tzinfo=timezone.utc).astimezone(time_zone) - now
             data["days_to_domain_exp"] = timedelta.days
 
             timedelta = (tmp.replace(tzinfo=timezone.utc).astimezone(time_zone)) - now
             data["days_to_ssl_exp"] = timedelta.days
 
             if data["days_to_ssl_exp"] < days_before_to_inform:
-                notify_ssl_expiry(
-                    monitor, data["days_to_ssl_exp"], data["days_to_domain_exp"]
-                )
+                notify_ssl_expiry(monitor, data["days_to_ssl_exp"], data["days_to_domain_exp"])
 
             data["status"] = "Successful responses"
 
@@ -205,7 +184,7 @@ def ssl_monitor(url, timeout, monitor_id, days_before_to_inform):
         data["status_code"] = conn.getcode()
     except HTTPError as e:
         data["status_code"] = e.code
-    except:
+    except Exception:
         data["status_code"] = 404
 
     create_log_entry(monitor, data)
