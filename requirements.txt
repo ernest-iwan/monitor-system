@@ -26,7 +26,7 @@ kombu==5.3.5
 ping3==4.0.4
 prompt-toolkit==3.0.43
 python-crontab==3.0.0
-python-dateutil==2.9.0
+python-dateutil==2.9.0.post0
 python-whois==0.8.0
 pythonping==1.1.4
 pytz==2024.1
