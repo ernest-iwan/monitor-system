@@ -25,9 +25,6 @@ jobs:
       - name: Build the Stack
         run:  docker-compose build
 
-      - name: Run the DB
-        run:  docker-compose up -d db
-
       - name: Run DB Migrations
         run:  docker-compose run --rm web ./manage.py migrate
 
