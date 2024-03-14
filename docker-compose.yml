@@ -7,10 +7,20 @@ services:
       MYENV: EXAMPLE
     volumes:
       - .:/code
+  web_makemigrations:
+    extends:
+      service: web
+    command: python manage.py makemigrations
   web_migrate:
     extends:
       service: web
     command: python manage.py migrate
+  web_test:
+    extends:
+      service: web
+    command: python manage.py test
+    volumes:
+      - .:/code
   web_run:
     extends:
       service: web
