@@ -64,16 +64,20 @@ def collect_data_url(url, timeout, monitor_id):
             notify_status_change(monitor, "offline")
 
     except Exception:
-        data["status"] = "Error"
         try:
             conn = urllib.request.urlopen(url)
             data["status_code"] = conn.getcode()
+            data["status"] = "Successful responses"
         except HTTPError as e:
             data["status_code"] = e.code
+            data["status"] = "Error"
+            if monitor.status == "online":
+                notify_status_change(monitor, "offline")
         except Exception:
             data["status_code"] = 404
-        if monitor.status == "online":
-            notify_status_change(monitor, "offline")
+            data["status"] = "Error"
+            if monitor.status == "online":
+                notify_status_change(monitor, "offline")
 
     # Create log entry
     create_log_entry(monitor, data)
@@ -94,7 +98,7 @@ def collect_data_ping(url, timeout, monitor_id):
 
     try:
         data["domain"] = url.replace("https://", "").replace("https://", "")
-        data["ping"] = round(ping(data["domain"], unit="ms"))
+        data["ping"] = round(ping(data["domain"], unit="ms", timeout=timeout))
         data["status"] = "Successful responses"
         if monitor.status == "offline":
             notify_status_change(monitor, "online")

@@ -61,8 +61,8 @@ class Monitor(models.Model):
         verbose_name_plural = _("Monitory")
 
     def get_logs(self):
-        thirty_days_ago = datetime.now(tzlocal.get_localzone()) - timedelta(days=30)
-        logs = Log.objects.filter(monitor=self, request_date__gte=thirty_days_ago)
+        days_ago = datetime.now(tzlocal.get_localzone()) - timedelta(days=60)
+        logs = Log.objects.filter(monitor=self, request_date__gte=days_ago)
 
         data = OrderedDict()
         for log in logs:
@@ -74,7 +74,7 @@ class Monitor(models.Model):
             if log.status == "Successful responses":
                 data[log_date]["online"] += 1
 
-        thirty_days_range = [thirty_days_ago + timedelta(days=i) for i in range(31)]
+        thirty_days_range = [days_ago + timedelta(days=i) for i in range(61)]
         for date in thirty_days_range:
             if date.date() not in data:
                 data[date.date()] = {"total": -1, "online": -1}

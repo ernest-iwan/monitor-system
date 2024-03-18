@@ -17,7 +17,7 @@
     <div class="services">
       <div class="services-wrapper service-info">
         <p class="title">
-          <span class="status-icon {% if monitor.status == 'online' %}online{% else %}offline{% endif %}"></span> Status strony z ostatnich 30 dni
+          <span class="status-icon animate-status {% if monitor.status == 'online' %}online{% else %}offline{% endif %}"></span> Status strony z ostatnich 60 dni
         </p>
         <div class="service">
           <div class="log-info">
@@ -48,17 +48,17 @@
     </div>
     {% if monitor.monitor_type != "cron_job" %}
       <div class="services">
-        <div class="services-wrapper service-info">
+        <div class="services-wrapper service-info service-chart">
           <p class="title">Ping z ostatnich 24 godzin</p>
-          <canvas id="pingChart" style="width:100%;max-width:750px"></canvas>
+          <canvas id="pingChart"></canvas>
         </div>
       </div>
     {% endif %}
     {% if monitor.monitor_type != "ping" %}
       <div class="services">
-        <div class="services-wrapper service-info">
+        <div class="services-wrapper service-info service-chart">
           <p class="title">Czas odpowiedzi z ostatnich 24 godzin</p>
-          <canvas id="responseChart" style="width:100%;max-width:750px"></canvas>
+          <canvas id="responseChart"></canvas>
         </div>
       </div>
     {% endif %}
@@ -77,6 +77,7 @@
     </div>
   </div>
   <script>
+    Chart.defaults.global.defaultFontColor = "#EEEEEE";
     //Ping Chart
 
     let x_values = [];

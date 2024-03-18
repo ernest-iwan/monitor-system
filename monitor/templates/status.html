@@ -10,9 +10,9 @@
   <div class="wrapper">
     <div class="status">
       {% if monitors_status %}
-        <h2 class="success">Wszystkie usługi działają poprawnie</h2>
+        <h2 class="success"><span class="status-icon online animate-status"></span> Wszystkie usługi działają poprawnie</h2>
       {% else %}
-        <h2 class="failure">Nie wszystkie usługi działają poprawnie</h2>
+        <h2 class="failure"><span class="status-icon offline animate-status"></span> Nie wszystkie usługi działają poprawnie</h2>
       {% endif %}
     </div>
     <p class="all-service-title">Usługi</p>

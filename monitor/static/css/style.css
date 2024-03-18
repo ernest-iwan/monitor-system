@@ -1,4 +1,13 @@
 /* Resetowanie stylów */
+:root{
+    --white: #EEEEEE;
+    --dark: #222831;
+    --grey: #726f6f;
+    --green: #5bc46f;
+    --light-green: #abf7b1;
+    --orange: #e55d3f;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -11,24 +20,32 @@ body {
 }
 
 header {
-    background-color: #131a26;
-    color: white;
-    padding: 40px 0;
+    height: 15vh;
+    background-color: var(--dark);
+    color: var(--white);
     text-align: left;
+    vertical-align: center;
+    line-height: 15vh;
 }
 
 .title {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
+}
+
+.title h1{
+    font-size: 40px;
 }
 
 main {
     display: flex;
     justify-content: center;
+    background: var(--white);
+    min-height: 85vh;
 }
 
 .wrapper {
-    max-width: 800px;
+    max-width: 1200px;
     width: 100%;
     margin: 20px;
 }
@@ -36,48 +53,53 @@ main {
 /* Status */
 .status {
     width: 100%;
-    padding: 20px;
+    padding: 40px 10px;
     border-radius: 15px;
     margin-top: 30px;
     margin-bottom: 50px;
-    box-shadow: -25px 18px 39px -33px rgba(66, 68, 90, 1);
+    background-color: var(--dark);
 }
 
 .status h2 {
+    font-size: 25px;
     margin-left: 30px;
 }
 
 /* Statusy */
 .positive {
-    background-color: #AAFF00;
+    background-color: var(--green);
 }
 
 .positive:hover{
-    background-color: #9ab46b;
+    background-color: var(--light-green);
 }
 
 .small-positive {
-    background-color: #9ab46b;
+    background-color: var(--light-green);
 }
 
 .small-positive:hover{
-    background-color: #838080;
+    background-color: var(--white);
 }
 
 .neutral {
-    background-color: #838080;
+    background-color: var(--grey);
+}
+
+.neutral:hover {
+    background-color: var(--white);
 }
 
 .negative {
-    background-color: #FF5733;
+    background-color: var(--orange);
 }
 
 .success {
-  color: #3bd671;
+  color: var(--green);
 }
 
 .failure {
-  color: #FF5733;
+  color: var(--orange);
 }
 
 /* Logi */
@@ -97,8 +119,8 @@ main {
     position: absolute;
     top: calc(100% + 5px);
     left: calc(100% + 5px);
-    background-color: black;
-    color: #fff;
+    background-color: var(--dark);
+    color: var(--white);
     padding: 5px;
     border-radius: 5px;
     white-space: nowrap;
@@ -111,7 +133,7 @@ main {
 
 .all-service-title {
     height: 50px;
-    font-size: 25px;
+    font-size: 35px;
     font-weight: bold;
 }
 
@@ -125,22 +147,24 @@ main {
     min-height: 200px;
     border-radius: 15px;
     margin-top: 30px;
-    margin-bottom: 50px;
-    box-shadow: -25px 18px 39px -33px rgba(66, 68, 90, 1);
+}
+
+.services-wrapper{
+    width: 100%;
 }
 
 .service {
     width: 100%;
-    padding: 20px;
-    margin-bottom: 20px;
-    background-color: white;
-    border-radius: 5px;
+    padding: 30px 20px;
+    background-color: var(--dark);
+    border-radius: 15px;
+    margin-bottom: 50px;
 }
 
 .service a, .service > p {
     display: inline-block;
     text-decoration: none;
-    color: black;
+    color: var(--white);
     margin: 10px 0;
     font-weight: normal;
     font-size: 17px;
@@ -153,16 +177,26 @@ p.title{
 }
 
 .service-info{
-    width: 750px;
+    max-width: 1200px;
+    background-color: var(--dark);
+    padding: 30px;
+    color: var(--white);
+    border-radius: 15px;
+}
+
+.service-info .service{
+    margin-bottom: 0;
 }
 
 canvas{
     margin: 20px 0;
+    width: 100%;
+    max-width: 1100px;
 }
 
 
 .service a:hover{
-    color: #5b5a5a;
+    color: var(--grey);
 }
 
 .status-icon {
@@ -174,17 +208,36 @@ canvas{
 }
 
 .online {
-    background-color: #3bd671;
+    background-color: var(--green);
+    color: var(--green);
 }
 
 .offline {
-    background-color: #FF5733;
+    background-color: var(--orange);
+    color: var(--orange);
 }
 
+.animate-status{
+    width: 22px;
+    height: 22px;
+    animation: pulse 2s infinite;
+}
 
-hr {
-    margin: 10px 0;
-    border: 1px solid #c7c1c1;
+@keyframes pulse {
+	0% {
+		transform: scale(0.90);
+		box-shadow: 0 0 0 0 currentcolor;
+	}
+
+	70% {
+		transform: scale(1);
+		box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+	}
+
+	100% {
+		transform: scale(0.95);
+		box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+	}
 }
 
 .status-box:hover .info-box {
@@ -194,8 +247,8 @@ hr {
 
 .info-card{
     padding: 20px;
-    margin: 15px 0;
-    background: rgba(255, 255, 255, 0.2);
+    margin: 25px 0;
+    background: rgba(77, 74, 74, 0.2);
     border-radius: 16px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(5px);
