@@ -80,10 +80,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": env("DATABASES_ENGINE", default="django.db.backends.postgresql"),
+        "NAME": env("DATABASES_NAME", default="postgres"),
+        "USER": env("DATABASES_USER", default="postgres"),
+        "PASSWORD": env("DATABASES_PASSWORD", default="postgres"),
+        "HOST": env("DATABASES_HOST", default="db"),
+        "PORT": env("DATABASES_PORT", default=5432),
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -106,9 +111,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "pl-pl"
+LANGUAGE_CODE = env("LANGUAGE_CODE", default="pl-pl")
 
-TIME_ZONE = "Europe/Warsaw"
+TIME_ZONE = env("TIME_ZONE", default="Europe/Warsaw")
 
 USE_I18N = True
 
@@ -125,43 +130,33 @@ STATIC_ROOT = BASE_DIR / "static"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# CRONE SETTINGS
-
-CRONTAB_COMMAND_SUFFIX = "2>&1"
-CRONJOBS = [("*/1 * * * *", "monitor.cron.my_cron_job", ">> ~/cron_job.log")]
-
 # CELERY SETTINGS
 
-CELERY_BROKER_URL = "redis://redis:6379"
-CELERY_RESULT_EXTENDED = True
-CELERY_ACCEPT_CONTENT = ["application/json"]
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_BACKEND = "django-db"
-CELERY_TIMEZONE = TIME_ZONE
-
-# CELERY BEAT SCHEDULER
-
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://redis:6379")
+CELERY_RESULT_EXTENDED = env("CELERY_RESULT_EXTENDED", default="True")
+CELERY_ACCEPT_CONTENT = env("CELERY_ACCEPT_CONTENT", default=["application/json"])
+CELERY_RESULT_SERIALIZER = env("CELERY_RESULT_SERIALIZER", default="json")
+CELERY_TASK_SERIALIZER = env("CELERY_TASK_SERIALIZER", default="json")
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="django-db")
+CELERY_TIMEZONE = env("CELERY_TIMEZONE", default=TIME_ZONE)
+CELERY_BEAT_SCHEDULER = env("CELERY_BEAT_SCHEDULER", default="django_celery_beat.schedulers:DatabaseScheduler")
 
 # REDIS CACHE
 
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
+        "BACKEND": env("CACHES_BACKEND", default="django_redis.cache.RedisCache"),
+        "LOCATION": env("CACHES_LOCATION", default="redis://127.0.0.1:6379/1"),
+        "OPTIONS": {"CLIENT_CLASS": env("CACHES_OPTIONS_CLIENT_CLASS", default="django_redis.client.DefaultClient")},
     }
 }
 
 # EMIL SETTINGS
 
 
-EMAIL_BACKEND = env("EMAIL_BACKEND")
-EMAIL_HOST = env("EMAIL_HOST")
-EMAIL_USE_TLS = env("EMAIL_USE_TLS")
-EMAIL_PORT = env("EMAIL_PORT")
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console")
+EMAIL_HOST = env("EMAIL_HOST", default="localhost")
+EMAIL_USE_TLS = env("EMAIL_USE_TLS", default="True")
+EMAIL_PORT = env("EMAIL_PORT", default="587")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="<EMAIL>")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="<PASSWORD>")

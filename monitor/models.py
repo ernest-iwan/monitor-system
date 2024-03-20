@@ -243,10 +243,13 @@ def delete(sender, instance, **kwargs):
         name=f"monitor {instance.id}",
     )
     task.delete()
-    task2 = PeriodicTask.objects.get(
+    if PeriodicTask.objects.filter(
         name=f"ssl monitor {instance.id}",
-    )
-    task2.delete()
+    ):
+        task2 = PeriodicTask.objects.get(
+            name=f"ssl monitor {instance.id}",
+        )
+        task2.delete()
 
 
 @receiver(post_save, sender=Monitor)
@@ -261,7 +264,7 @@ def save(sender, instance, created, **kwargs):
             task = PeriodicTask.objects.get_or_create(
                 interval=interval,
                 name=f"monitor {instance.id}",
-                task="config.celery.collect_data_url",
+                task="monitor.tasks.collect_data_url",
                 enabled=instance.is_active,
                 args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
@@ -274,7 +277,7 @@ def save(sender, instance, created, **kwargs):
                 task = PeriodicTask.objects.get_or_create(
                     interval=interval,
                     name=f"ssl monitor {instance.id}",
-                    task="config.celery.ssl_monitor",
+                    task="monitor.tasks.ssl_monitor",
                     enabled=instance.is_active,
                     args=json.dumps(
                         [
@@ -290,7 +293,7 @@ def save(sender, instance, created, **kwargs):
             task = PeriodicTask.objects.get_or_create(
                 interval=interval,
                 name=f"monitor {instance.id}",
-                task="config.celery.collect_data_ping",
+                task="monitor.tasks.collect_data_ping",
                 enabled=instance.is_active,
                 args=json.dumps([instance.value_to_check, instance.request_timeout, instance.id]),
             )
@@ -299,7 +302,7 @@ def save(sender, instance, created, **kwargs):
             task = PeriodicTask.objects.get_or_create(
                 interval=interval,
                 name=f"monitor {instance.id}",
-                task="config.celery.collect_data_crone",
+                task="monitor.tasks.collect_data_crone",
                 enabled=instance.is_active,
                 args=json.dumps([instance.request_timeout, instance.id]),
             )
@@ -318,7 +321,7 @@ def save(sender, instance, created, **kwargs):
         task.enabled = instance.is_active
 
         if instance.monitor_type == "http_request":
-            task.task = "config.celery.collect_data_url"
+            task.task = "monitor.tasks.collect_data_url"
             if instance.ssl_monitor:
                 task2 = PeriodicTask.objects.get(
                     name=f"ssl monitor {instance.id}",
@@ -334,9 +337,9 @@ def save(sender, instance, created, **kwargs):
                 task2.enabled = instance.ssl_monitor
                 task2.save()
         elif instance.monitor_type == "ping":
-            task.task = "config.celery.collect_data_ping"
+            task.task = "monitor.tasks.collect_data_ping"
         elif instance.monitor_type == "crone_job":
-            task.task = "config.celery.collect_data_crone"
+            task.task = "monitor.tasks.collect_data_crone"
             task.args = json.dumps([instance.request_timeout, instance.id])
 
         task.save()

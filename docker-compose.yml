@@ -3,30 +3,19 @@ version: '3'
 services:
   web:
     build: .
-    environment:
-      MYENV: EXAMPLE
+    command: python /code/manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
-  web_makemigrations:
-    extends:
-      service: web
-    command: python manage.py makemigrations
-  web_migrate:
-    extends:
-      service: web
-    command: python manage.py migrate
-  web_test:
-    extends:
-      service: web
-    command: python manage.py test
-    volumes:
-      - .:/code
-  web_run:
-    extends:
-      service: web
-    command: python manage.py runserver 0.0.0.0:8000
     ports:
-      - "8000:8000"
+      - 8000:8000
+    depends_on:
+      - db
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
   redis:
     image: redis:alpine
   celery-beat:
@@ -36,5 +25,8 @@ services:
       - .:/code
     depends_on:
       - redis
+      - db
+volumes:
+  postgres_data:
 
-# sudo docker compose up --build
+# sudo docker compose up -d --build
