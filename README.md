@@ -154,4 +154,4 @@ Distributed under the MIT License. See [LICENSE](https://github.com/Ernol123/mon
 
 ## Authors
 
-* **Ernest Iwan** - *student of a technical school on an internship at IC Project* - [Ernest Iwan](https://github.com/Ernol123) - **
+* **Ernest Iwan** - *student of a technical school on an internship at IC Project* - [Ernest Iwan](https://github.com/Ernol123)
