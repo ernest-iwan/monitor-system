@@ -148,7 +148,7 @@ docker-compose exec web python manage.py createsuperuser
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/Ernol123/monitor-system/LICENSE.md) for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/Ernol123/monitor-system/blob/main/LICENSE.md) for more information.
 
 ## Authors
 
