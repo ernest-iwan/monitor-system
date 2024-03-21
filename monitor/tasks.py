@@ -9,6 +9,7 @@ import whois
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import send_mail
+from django.template.loader import get_template
 from ping3 import ping
 
 from monitor.models import ApiRequest, EmailValues, Log, Monitor
@@ -16,6 +17,7 @@ from monitor.models import ApiRequest, EmailValues, Log, Monitor
 time_zone = tzlocal.get_localzone()
 now = datetime.now(time_zone)
 format_str = "%Y-%m-%d %H:%M:%S %z"
+email_template = get_template("../templates/email.html")
 
 
 @shared_task()
@@ -182,16 +184,28 @@ def ssl_monitor(url, timeout, monitor_id, days_before_to_inform):
 
 def notify_status_change(monitor, new_status):
     for tmp in EmailValues.objects.filter(monitor=monitor.id):
+        if new_status == "offline":
+            html_content = email_template.render(
+                {
+                    "info": f"Your monitored service has passed in status {new_status}",
+                    "msg": "To ensure that everything is functioning correctly, it is important to thoroughly test all components and systems to identify any issues or malfunctions. This can involve conducting various tests, running diagnostics, and performing inspections to verify that all aspects are operating as intended. Regular maintenance and monitoring can also help in detecting any potential problems early on, allowing for timely intervention and resolution. By consistently checking if everything works properly, you can maintain optimal performance and prevent any unexpected failures or breakdowns.",
+                }
+            )
+        else:
+            html_content = email_template.render(
+                {
+                    "info": f"Your monitored service has passed in status {new_status}",
+                    "msg": f"I would like to express my heartfelt appreciation for diligently fixing all the errors and for ensuring that everything is now working as intended. Your dedication and determination in troubleshooting are greatly valued. Thanks to your efforts, we can now enjoy the smooth and reliable operation of all our systems. Your work is a key component of our success, and your ability to react quickly and effectively to resolve issues is commendable. Once again, thank you sincerely for your efforts and professionalism.",
+                }
+            )
+
         send_mail(
-            f"Twoja monitorowana strona przeszła w status {new_status}",
-            (
-                "Strona powróciła do poprawnego działania"
-                if new_status == "online"
-                else "Sprawdź czy wszystko działa poprawnie"
-            ),
+            f"Your monitored service has passed in status {new_status}",
+            "",
             settings.EMAIL_HOST_USER,
             [tmp.email],
             fail_silently=False,
+            html_message=html_content,
         )
     monitor.status = new_status
     monitor.save()
@@ -199,12 +213,20 @@ def notify_status_change(monitor, new_status):
 
 def notify_ssl_expiry(monitor, days_to_ssl_exp, days_to_domain_exp):
     for tmp in EmailValues.objects.filter(monitor=monitor.id):
+        html_content = email_template.render(
+            {
+                "info": f"Your SSL certificate expiring in {days_to_ssl_exp}",
+                "msg": f"Your SSL certificate is approaching its expiration date, meaning that it will soon no longer be valid for securing your website. Additionally, the domain registration is also nearing its expiration, with only {days_to_domain_exp} days left until it needs to be renewed. It's important to take action promptly to ensure uninterrupted service and security for your website.",
+            }
+        )
+
         send_mail(
-            f"Twój certyfikat SSL wygasa za: {days_to_ssl_exp} dni",
-            f"Ważność twojego certyfikatu SSL dobiega końca, natomiast domena wygasa za: {days_to_domain_exp} dni",
+            f"Your SSL certificate is expiring in: {days_to_ssl_exp} days.",
+            f"",
             settings.EMAIL_HOST_USER,
             [tmp.email],
             fail_silently=False,
+            html_message=html_content,
         )
 
 

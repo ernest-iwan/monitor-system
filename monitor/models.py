@@ -323,7 +323,15 @@ def save(sender, instance, created, **kwargs):
         if instance.monitor_type == "http_request":
             task.task = "monitor.tasks.collect_data_url"
             if instance.ssl_monitor:
+                interval = IntervalSchedule.objects.get_or_create(
+                    every=1,
+                    period=IntervalSchedule.DAYS,
+                )
+                task2 = PeriodicTask.objects.get_or_create(
+                    interval=interval[0], name=f"ssl monitor {instance.id}", task="monitor.tasks.ssl_monitor"
+                )
                 task2 = PeriodicTask.objects.get(
+                    interval=interval[0],
                     name=f"ssl monitor {instance.id}",
                 )
                 task2.args = json.dumps(
