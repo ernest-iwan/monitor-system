@@ -23,7 +23,7 @@ future==1.0.0
 futures==3.0.5
 idna==3.6
 kombu==5.3.5
-ping3==4.0.4
+ping3==4.0.8
 prompt-toolkit==3.0.43
 python-crontab==3.0.0
 python-dateutil==2.9.0
